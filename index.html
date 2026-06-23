@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SevaERP — E-Sevai Service Centre Management</title>
+<title>SevaERP Enterprise — E-Sevai Service Centre Management</title>
 
 <!-- Bootstrap 5 -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
@@ -455,6 +455,12 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
 
 <!-- ============ APP SHELL ============ -->
 <div class="app-shell d-none" id="appShell">
+  <!-- OFFLINE / SYNC STATUS BANNER -->
+  <div id="offlineBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:2000;padding:8px 20px;align-items:center;gap:10px;font-size:13px;font-weight:700;border-bottom:1px solid var(--border-soft);">
+    <i class="fa-solid fa-wifi-slash"></i>
+    <span id="offlineMsg">Offline Mode</span>
+    <button class="btn btn-sm btn-outline-app ms-auto" onclick="flushOfflineQueue()" style="font-size:11px;">Retry Sync</button>
+  </div>
 
   <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
@@ -487,6 +493,7 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
 
       <div class="nav-section-label">Operations</div>
       <div class="nav-link-app" data-page="invoice"><i class="fa-solid fa-file-invoice nav-ic"></i> Invoice</div>
+      <div class="nav-link-app" data-page="serviceinvoices"><i class="fa-solid fa-file-invoice-dollar nav-ic"></i> Service Invoices</div>
       <div class="nav-link-app" data-page="inventory"><i class="fa-solid fa-boxes-stacked nav-ic"></i> Inventory</div>
       <div class="nav-link-app" data-page="tasks"><i class="fa-solid fa-list-check nav-ic"></i> Tasks</div>
       <div class="nav-link-app" data-page="documents"><i class="fa-solid fa-folder-open nav-ic"></i> Documents</div>
@@ -514,7 +521,7 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
       <div class="nav-link-app" data-page="settings"><i class="fa-solid fa-gear nav-ic"></i> Settings</div>
     </div>
     <div class="sidebar-foot">
-      <i class="fa-solid fa-shield-halved me-1"></i> Data stored locally on this device · v1.0
+      <i class="fa-solid fa-shield-halved me-1"></i> SevaERP Enterprise v2.0 · Multi-device sync
     </div>
   </aside>
 
@@ -1569,6 +1576,42 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
         </div>
       </section>
 
+      <!-- ============ SERVICE INVOICES ============ -->
+      <section class="page-section" id="page-serviceinvoices">
+        <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
+          <div><div class="section-title">Service Invoices</div><div class="section-desc mb-0">GST invoices with auto-number, PDF download and payment tracking</div></div>
+          <button class="btn btn-marigold" onclick="openServiceInvoiceModal()"><i class="fa-solid fa-plus me-1"></i>New Invoice</button>
+        </div>
+        <div class="card-app mb-3" style="border-color:var(--marigold);">
+          <div class="card-app-body py-2 px-3 d-flex gap-4 flex-wrap" id="sInvSummaryBar">
+            <span style="font-size:13px;">Total: <strong id="sInvTotalCount">0</strong></span>
+            <span style="font-size:13px;color:var(--success);">Paid: <strong id="sInvTotalPaid">₹0</strong></span>
+            <span style="font-size:13px;color:var(--danger);">Outstanding: <strong id="sInvTotalBal">₹0</strong></span>
+          </div>
+        </div>
+        <div class="card-app">
+          <div class="card-app-body">
+            <div class="filter-bar">
+              <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="form-control" id="sInvSearch" placeholder="Invoice no., customer..."></div>
+              <select class="form-select" id="sInvStatusFilter"><option value="">All Status</option><option>Unpaid</option><option>Partial</option><option>Paid</option></select>
+              <input type="date" class="form-control" id="sInvFrom">
+              <input type="date" class="form-control" id="sInvTo">
+              <div class="ms-auto d-flex gap-2">
+                <button class="btn btn-outline-app btn-sm" onclick="exportTableExcel('sInvTable','Service_Invoices')"><i class="fa-solid fa-file-excel me-1"></i>Excel</button>
+                <button class="btn btn-outline-app btn-sm" onclick="exportTablePDF('sInvTable','Service Invoice Report')"><i class="fa-solid fa-file-pdf me-1"></i>PDF</button>
+              </div>
+            </div>
+            <div class="table-responsive-app">
+              <table class="table-app mb-0" id="sInvTable">
+                <thead><tr><th>Invoice No.</th><th>Date</th><th>Customer</th><th>Service</th><th class="text-end">Total</th><th class="text-end">Paid</th><th class="text-end">Balance</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+                <tbody id="sInvBody"></tbody>
+              </table>
+            </div>
+            <div id="sInvEmpty" class="empty-state d-none"><i class="fa-solid fa-file-invoice-dollar"></i><h6>No service invoices yet</h6></div>
+          </div>
+        </div>
+      </section>
+
       <!-- ============ AUDIT LOG ============ -->
       <section class="page-section" id="page-auditlog">
         <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
@@ -1656,16 +1699,32 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
             <div class="card-app h-100">
               <div class="card-app-head"><h6><i class="fa-solid fa-table-cells me-2" style="color:#1f8a55;"></i>Google Sheet Sync (Live Backend)</h6></div>
               <div class="card-app-body">
-                <p style="font-size:13px;color:var(--text-2);">Connect SevaERP to a Google Sheet so every module's data is saved live to the cloud via a Google Apps Script Web App. Once connected, all CRUD actions across every module sync automatically.</p>
+                <p style="font-size:13px;color:var(--text-2);">Connect SevaERP to a Google Sheet so every module's data is saved live to the cloud via a Google Apps Script Web App. Once connected, all CRUD actions acros every module sync automatically.
+                    Each module (Customers, Services, Invoices, Income, Expense, etc.) writes to its own dedicated sheet inside one Google Spreadsheet.
+                    Multi-device real-time sync with 30-second auto-refresh. Offline changes queue automatically and flush when you reconnect.</p>
+                  <div class="card-app mb-3" style="border:1px solid var(--teal);border-radius:10px;">
+                    <div class="card-app-body py-2 px-3">
+                      <div style="font-size:12px;color:var(--text-2);">
+                        <b>Setup Steps:</b><br>
+                        1. Open <a href="https://sheets.new" target="_blank">sheets.new</a> to create a new Google Spreadsheet<br>
+                        2. Go to <b>Extensions → Apps Script</b> → paste the <b>Code.gs</b> file (download below)<br>
+                        3. Click <b>Deploy → New Deployment → Web App</b><br>
+                        4. Set: Execute as <b>Me</b> · Who has access: <b>Anyone</b><br>
+                        5. Authorize → Copy the <b>Web App URL</b> → paste it below<br>
+                        6. Click <b>Connect &amp; Test</b> — all sheets will be auto-created!
+                      </div>
+                    </div>
+                  </div>
 
                 <div class="mb-2"><label class="form-label">Apps Script Web App URL</label>
-                  <input type="text" class="form-control mono" id="sheetWebAppUrl" placeholder="https://script.google.com/macros/s/XXXXXXXX/exec">
+                  <input type="text" class="form-control mono" id="sheetWebAppUrl" placeholder="https://script.google.com/macros/s/XXXXXXXX/exec" value="https://script.google.com/macros/s/AKfycbxYGR_TzfONS7bwQUDxLhFzc3LxPmzlY3PQK7e6nti2KvDYk5ZfGLbRRI7yCVVmKES4/exec">
                   <small style="color:var(--text-3);">Paste the URL from your Apps Script deployment. <a href="javascript:void(0)" onclick="openSheetsHelpModal()">How do I get this?</a></small>
                 </div>
 
                 <div class="d-flex gap-2 flex-wrap mb-2">
                   <button class="btn btn-teal" onclick="connectSheetBackend()"><i class="fa-solid fa-plug me-1"></i>Connect &amp; Test</button>
                   <button class="btn btn-outline-app" onclick="manualSyncNow()"><i class="fa-solid fa-rotate me-1"></i>Sync Now</button>
+                  <button class="btn btn-outline-app" onclick="pushAllLocalData()" title="Push all local records to Google Sheets"><i class="fa-solid fa-cloud-arrow-up me-1"></i>Upload All Local Data</button>
                   <button class="btn btn-outline-app" onclick="manualPullFromCloud()"><i class="fa-solid fa-cloud-arrow-down me-1"></i>Pull Latest from Sheet</button>
                   <button class="btn btn-ghost-danger" onclick="disconnectSheetBackend()"><i class="fa-solid fa-link-slash me-1"></i>Disconnect</button>
                 </div>
@@ -2848,7 +2907,65 @@ function loadDB(){
   }
 }
 
+// Sheet name map: DB local key → Google Sheet name
+const DB_TO_SHEET = {
+  customers:'Customers', services:'Services', invoices:'ServiceInvoices',
+  income:'Income', expense:'Expense', loans:'Loans', emiPayments:'EMI',
+  chits:'Chits', inventory:'Inventory', staff:'Staff', attendance:'Attendance',
+  payroll:'Payroll', leads:'Leads', reminders:'Reminders', documents:'Documents',
+  tasks:'Tasks', machines:'Machines', printerReadings:'PrinterReadings',
+  machineServices:'MachineService', maintenanceSchedule:'Maintenance',
+  auditLog:'AuditLogs', notifications:'Notifications',
+};
+
+// Snapshot of last-saved state per collection (uuid→updatedAt)
+let _dbSnapshot = {};
+
+function _buildSnapshot(){
+  const snap = {};
+  Object.keys(DB_TO_SHEET).forEach(col=>{
+    if(!Array.isArray(DB[col])) return;
+    snap[col] = {};
+    DB[col].forEach(r=>{ if(r.uuid) snap[col][r.uuid] = r.updatedAt||''; });
+  });
+  return snap;
+}
+
 function saveDB(){
+  const now = new Date().toISOString();
+  // 1. Ensure every record has uuid + timestamps before saving
+  Object.keys(DB_TO_SHEET).forEach(col=>{
+    if(!Array.isArray(DB[col])) return;
+    DB[col].forEach(r=>{
+      if(!r.uuid)      r.uuid      = generateUUID();
+      if(!r.createdAt) r.createdAt = now;
+      if(!r.updatedAt) r.updatedAt = now;
+    });
+  });
+
+  // 2. Diff against snapshot — find new or changed records
+  Object.keys(DB_TO_SHEET).forEach(col=>{
+    if(!Array.isArray(DB[col])) return;
+    const prevSnap = _dbSnapshot[col] || {};
+    const sheetName = DB_TO_SHEET[col];
+    DB[col].forEach(r=>{
+      if(!r.uuid) return;
+      const prevTs = prevSnap[r.uuid];
+      // Queue if new (not in snapshot) or timestamp changed
+      if(prevTs === undefined || prevTs !== r.updatedAt){
+        // Skip binary-heavy fields to keep queue small
+        const toQueue = Object.assign({}, r);
+        if(col==='documents')  delete toQueue.base64;
+        if(col==='machines'){  delete toQueue.photoBase64; delete toQueue.invoiceBase64; delete toQueue.warrantyCardBase64; }
+        try{ _enqueueChange(sheetName, toQueue); }catch(e){}
+      }
+    });
+  });
+
+  // 3. Rebuild snapshot
+  _dbSnapshot = _buildSnapshot();
+
+  // 4. Persist to localStorage
   try{
     localStorage.setItem(DB_KEY, JSON.stringify(DB));
   }catch(e){
@@ -2857,101 +2974,169 @@ function saveDB(){
   scheduleAutoSync();
 }
 
+// Internal enqueue — deduplicates by sheet+uuid
+function _enqueueChange(sheetName, record){
+  if(!record || !sheetName) return;
+  if(!record.uuid) record.uuid = generateUUID();
+  try{ if(!Array.isArray(offlineQueue)) return; }catch(e){ return; } // sync engine not yet loaded
+  offlineQueue = offlineQueue.filter(q=>!(q.sheet===sheetName && q.uuid===record.uuid));
+  offlineQueue.push({ sheet:sheetName, uuid:record.uuid, data:record, ts:Date.now() });
+  try{ saveOfflineQueue(); }catch(e){}
+  try{ updateOfflineBanner(); }catch(e){}
+}
+
 /* ====================================================================
-   GOOGLE SHEET LIVE SYNC ENGINE
-   ----------------------------------------------------------------
-   SevaERP keeps localStorage as the always-on, instant, offline-safe
-   store (every render reads DB straight from memory). On top of that,
-   when a Google Apps Script Web App URL is configured, every saveDB()
-   call also schedules a debounced push of the *entire* DB object (minus
-   large binary attachments, which can't fit in a Sheet cell) to that
-   Apps Script, which stores it as one JSON snapshot in a Google Sheet.
-   On boot, SevaERP pulls the latest cloud snapshot first (if reachable)
-   so multiple devices/staff stay in sync, falling back to whatever is
-   in localStorage if the cloud is unreachable (offline-first).
+   SEVAERP ENTERPRISE SYNC ENGINE v2.0
+   ─────────────────────────────────────────────────────────────────
+   Architecture:
+   • localStorage = always-on, instant, offline-safe primary store
+   • Google Sheets = cloud replica via Apps Script Web App (REST API)
+   • UUID per record = conflict-free multi-device edits
+   • Delta sync = only changed records travel over the wire
+   • Offline queue = saves flush automatically when online returns
+   • Auto sync every 30 seconds when online
+   • "Last updatedAt wins" conflict resolution
+   • Soft-deletes propagate across devices (_deleted flag)
 ==================================================================== */
-// Default backend for this deployment — pre-configured so SevaERP connects
-// automatically without a manual setup step. Sheet ID: 1rEKemcJUpAJ_HRLH-fvsXX0k4woJYd-Ntq2iI8yK9_U
+
+// ── Device Identity ──────────────────────────────────────────────
+const DEVICE_ID = (function(){
+  let d = localStorage.getItem('_sevaerp_device_id');
+  if(!d){ d = 'DEV-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6).toUpperCase(); localStorage.setItem('_sevaerp_device_id',d); }
+  return d;
+})();
+
+// ── Offline Queue ─────────────────────────────────────────────────
+const OFFLINE_QUEUE_KEY = 'sevaerp_offline_queue_v2';
+let offlineQueue = [];
+
+function loadOfflineQueue(){
+  try{ offlineQueue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY)||'[]'); }catch(e){ offlineQueue=[]; }
+}
+function saveOfflineQueue(){
+  try{ localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(offlineQueue)); }catch(e){}
+}
+function queueOfflineChange(sheetName, record){
+  if(!record || !sheetName) return;
+  if(!record.uuid)      record.uuid      = generateUUID();
+  if(!record.updatedAt) record.updatedAt = new Date().toISOString();
+  record._deviceId = DEVICE_ID;
+  _enqueueChange(sheetName, record);
+}
+function getQueuedChanges(){
+  // Group by sheet
+  const grouped = {};
+  offlineQueue.forEach(q=>{ (grouped[q.sheet]=grouped[q.sheet]||[]).push(q.data); });
+  return grouped;
+}
+
+// ── UUID Generator ────────────────────────────────────────────────
+function generateUUID(){
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){
+    const r=Math.random()*16|0, v=c==='x'?r:(r&0x3|0x8); return v.toString(16);
+  });
+}
+
+// ── Ensure every DB record has a UUID ─────────────────────────────
+function ensureUUIDs(){
+  if(!DB) return; // safety guard
+  const collections = ['customers','services','invoices','income','expense','loans','chits','inventory',
+    'staff','attendance','payroll','leads','reminders','documents','tasks','machines','printers',
+    'printerReadings','printerServices','machineServices','maintenanceSchedule','auditLog'];
+  const now = new Date().toISOString();
+  collections.forEach(col=>{
+    if(!Array.isArray(DB[col])) return;
+    DB[col].forEach(rec=>{
+      if(!rec.uuid) rec.uuid = generateUUID();
+      if(!rec.createdAt) rec.createdAt = now;
+      if(!rec.updatedAt) rec.updatedAt = now;
+    });
+  });
+}
+
+// ── Offline Banner ────────────────────────────────────────────────
+function updateOfflineBanner(){
+  const banner = document.getElementById('offlineBanner');
+  if(!banner) return;
+  const isOnline = navigator.onLine;
+  const pending = offlineQueue.length;
+  if(!isOnline){
+    banner.style.display='flex';
+    banner.querySelector('#offlineMsg').textContent = '📴 Offline Mode — data saved locally. Will sync when internet returns.';
+    banner.style.background='var(--warning-light)'; banner.style.color='var(--warning)';
+  }else if(pending>0){
+    banner.style.display='flex';
+    banner.querySelector('#offlineMsg').textContent = `🔄 ${pending} pending change${pending>1?'s':''} — syncing to cloud...`;
+    banner.style.background='var(--info-light)'; banner.style.color='var(--info)';
+  }else{
+    banner.style.display='none';
+  }
+}
+
+window.addEventListener('online',  ()=>{ updateOfflineBanner(); flushOfflineQueue(); startAutoSync(); });
+window.addEventListener('offline', ()=>{ updateOfflineBanner(); stopAutoSync(); });
+
+// ── Sync Configuration ────────────────────────────────────────────
 const DEFAULT_SHEET_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxYGR_TzfONS7bwQUDxLhFzc3LxPmzlY3PQK7e6nti2KvDYk5ZfGLbRRI7yCVVmKES4/exec';
-let syncCfg = { url: DEFAULT_SHEET_WEBAPP_URL, autoSync:true, lastSyncedAt:null, lastSyncStatus:'idle' }; // idle|syncing|success|error|offline
+const GOOGLE_SHEET_ID = '1rEKemcJUpAJ_HRLH-fvsXX0k4woJYd-Ntq2iI8yK9_U';
+const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1rEKemcJUpAJ_HRLH-fvsXX0k4woJYd-Ntq2iI8yK9_U';
+let syncCfg = { url:'https://script.google.com/macros/s/AKfycbxYGR_TzfONS7bwQUDxLhFzc3LxPmzlY3PQK7e6nti2KvDYk5ZfGLbRRI7yCVVmKES4/exec', autoSync:true, lastSyncedAt:null, lastSyncStatus:'idle', lastPullAt:null };
 let autoSyncTimer = null;
+let autoSyncInterval = null;
 let syncInFlight = false;
 
 function loadSyncCfg(){
   try{
     const raw = localStorage.getItem(SYNC_CFG_KEY);
     if(raw) syncCfg = Object.assign(syncCfg, JSON.parse(raw));
-  }catch(e){ /* ignore corrupt config */ }
+    // Always ensure the hardcoded URL is used if none stored
+    if(!syncCfg.url) syncCfg.url = 'https://script.google.com/macros/s/AKfycbxYGR_TzfONS7bwQUDxLhFzc3LxPmzlY3PQK7e6nti2KvDYk5ZfGLbRRI7yCVVmKES4/exec';
+  }catch(e){
+    syncCfg.url = 'https://script.google.com/macros/s/AKfycbxYGR_TzfONS7bwQUDxLhFzc3LxPmzlY3PQK7e6nti2KvDYk5ZfGLbRRI7yCVVmKES4/exec';
+  }
 }
 function saveSyncCfg(){
   try{ localStorage.setItem(SYNC_CFG_KEY, JSON.stringify(syncCfg)); }catch(e){}
 }
 
-// Fields too large for a single Sheet cell (~50,000 char limit) are stripped
-// before upload, and restored from localStorage on every load so nothing
-// is ever lost locally — they simply don't travel through the cloud.
-function buildSyncPayload(){
-  const clone = JSON.parse(JSON.stringify(DB));
-  if(clone.settings) delete clone.settings.logo;
-  if(Array.isArray(clone.documents)) clone.documents = clone.documents.map(d=>({ id:d.id, fileName:d.fileName, customerId:d.customerId, customerName:d.customerName, uploadedOn:d.uploadedOn, _omitted:'file content stored locally only' }));
-  if(Array.isArray(clone.machines)) clone.machines = clone.machines.map(m=>{ const c=Object.assign({},m); delete c.photoBase64; delete c.invoiceBase64; delete c.warrantyCardBase64; return c; });
-  return clone;
+// ── Auto-sync every 30 seconds ────────────────────────────────────
+function startAutoSync(){
+  stopAutoSync();
+  if(!syncCfg.url || !syncCfg.autoSync) return;
+  autoSyncInterval = setInterval(()=>{ if(navigator.onLine) doFullSync(false); }, 30000);
 }
-
-function mergeCloudDataIntoDB(cloudData){
-  // Preserve this device's local-only binary fields (logo, document files,
-  // machine photos/scans) since the cloud copy never carries them.
-  const localLogo = (DB && DB.settings) ? DB.settings.logo : '';
-  const localDocs = (DB && Array.isArray(DB.documents)) ? DB.documents : [];
-  const localMachines = (DB && Array.isArray(DB.machines)) ? DB.machines : [];
-
-  DB = cloudData;
-  for(const k in DEFAULT_DB){ if(!(k in DB)) DB[k] = JSON.parse(JSON.stringify(DEFAULT_DB[k])); }
-  for(const k in DEFAULT_DB.meta){ if(!(k in DB.meta)) DB.meta[k] = DEFAULT_DB.meta[k]; }
-  for(const k in DEFAULT_DB.settings){ if(!(k in DB.settings)) DB.settings[k] = DEFAULT_DB.settings[k]; }
-  if(localLogo) DB.settings.logo = localLogo;
-
-  if(Array.isArray(DB.documents)){
-    DB.documents = DB.documents.map(d=>{
-      const local = localDocs.find(ld=>ld.id===d.id);
-      return local ? Object.assign({}, d, { base64: local.base64 }) : d;
-    });
-  }
-  if(Array.isArray(DB.machines)){
-    DB.machines = DB.machines.map(m=>{
-      const local = localMachines.find(lm=>lm.id===m.id);
-      return local ? Object.assign({}, m, { photoBase64: local.photoBase64, invoiceBase64: local.invoiceBase64, warrantyCardBase64: local.warrantyCardBase64 }) : m;
-    });
-  }
-  saveDB();
+function stopAutoSync(){
+  if(autoSyncInterval){ clearInterval(autoSyncInterval); autoSyncInterval=null; }
 }
-
 function scheduleAutoSync(){
   if(!syncCfg.url || !syncCfg.autoSync) return;
   clearTimeout(autoSyncTimer);
-  autoSyncTimer = setTimeout(()=> pushToSheet(false), 1500);
+  autoSyncTimer = setTimeout(()=>{ if(navigator.onLine) pushChanges(false); }, 1500);
 }
 
+// ── Sync Status UI ────────────────────────────────────────────────
 function setSyncStatus(status){
   syncCfg.lastSyncStatus = status;
   saveSyncCfg();
   const icon = document.getElementById('syncStatusIcon');
-  const dot = document.getElementById('syncStatusDot');
-  const btn = document.getElementById('syncStatusBtn');
-  if(!icon || !btn) return;
+  const dot  = document.getElementById('syncStatusDot');
+  const btn  = document.getElementById('syncStatusBtn');
+  if(!icon||!btn) return;
   if(!syncCfg.url){
-    icon.className = 'fa-solid fa-cloud';
-    btn.title = 'Google Sheet sync not configured — click to set up';
-    dot.style.display = 'none';
-    renderSettingsSyncStatus();
-    return;
+    icon.className='fa-solid fa-cloud'; btn.title='Google Sheet sync not configured';
+    dot.style.display='none'; renderSettingsSyncStatus(); return;
   }
-  dot.style.display = 'block';
-  if(status==='syncing'){ icon.className='fa-solid fa-cloud-arrow-up'; dot.style.background='var(--warning)'; btn.title='Syncing to Google Sheet…'; }
-  else if(status==='success'){ icon.className='fa-solid fa-cloud-arrow-up'; dot.style.background='var(--success)'; btn.title='Synced — last saved '+(syncCfg.lastSyncedAt?fmtDateTime(syncCfg.lastSyncedAt):''); }
-  else if(status==='error'){ icon.className='fa-solid fa-cloud'; dot.style.background='var(--danger)'; btn.title='Sync failed — click to check Settings'; }
-  else if(status==='offline'){ icon.className='fa-solid fa-cloud'; dot.style.background='var(--text-3)'; btn.title='Cloud unreachable — working offline from this device'; }
-  else { icon.className='fa-solid fa-cloud'; dot.style.background='var(--text-3)'; btn.title='Google Sheet connected — not yet synced this session'; }
+  dot.style.display='block';
+  const map = {
+    syncing: ['fa-solid fa-cloud-arrow-up','var(--warning)','Syncing…'],
+    success: ['fa-solid fa-cloud-check','var(--success)','Synced ✓'],
+    error:   ['fa-solid fa-cloud','var(--danger)','Sync failed'],
+    offline: ['fa-solid fa-cloud','var(--text-3)','Offline — working locally'],
+    idle:    ['fa-solid fa-cloud','var(--text-3)','Connected — idle'],
+  };
+  const [cls,col,tip] = map[status]||map.idle;
+  icon.className=cls; dot.style.background=col;
+  btn.title = tip + (syncCfg.lastSyncedAt?' · '+fmtDateTime(syncCfg.lastSyncedAt):'');
   renderSettingsSyncStatus();
 }
 
@@ -2959,143 +3144,499 @@ function renderSettingsSyncStatus(){
   const box = document.getElementById('sheetSyncStatusBox');
   if(!box) return;
   if(!syncCfg.url){
-    box.innerHTML = '<span style="color:var(--text-3);"><i class="fa-solid fa-circle-info me-1"></i>Not connected yet — paste your Web App URL above and click Connect &amp; Test.</span>';
+    box.innerHTML='<span style="color:var(--text-3);"><i class="fa-solid fa-circle-info me-1"></i>Not connected — paste your Apps Script Web App URL and click Connect &amp; Test.</span>';
     return;
   }
-  const statusLabels = {
-    idle:['Connected — not yet synced','var(--text-3)'],
-    syncing:['Syncing…','var(--warning)'],
-    success:['Synced successfully','var(--success)'],
-    error:['Last sync failed','var(--danger)'],
-    offline:['Cloud unreachable — working offline','var(--text-3)']
-  };
-  const [label,color] = statusLabels[syncCfg.lastSyncStatus] || statusLabels.idle;
-  box.innerHTML = `<span style="color:${color};font-weight:700;"><i class="fa-solid fa-circle me-1" style="font-size:7px;"></i>${label}</span>`+
-    (syncCfg.lastSyncedAt ? ` &nbsp;·&nbsp; Last synced: ${fmtDateTime(syncCfg.lastSyncedAt)}` : '');
+  const map2={idle:['idle','var(--text-3)'],syncing:['Syncing…','var(--warning)'],success:['Synced ✓','var(--success)'],error:['Last sync failed','var(--danger)'],offline:['Offline','var(--text-3)']};
+  const [lbl,col]= map2[syncCfg.lastSyncStatus]||map2.idle;
+  box.innerHTML=`<span style="color:${col};font-weight:700;">${lbl}</span>`
+    +(syncCfg.lastSyncedAt?` &nbsp;·&nbsp; Last sync: ${fmtDateTime(syncCfg.lastSyncedAt)}`:'')+
+    `<br><small style="color:var(--text-3);">Device ID: ${DEVICE_ID}</small>`;
 }
 
-async function callSheetBackend(payload){
-  // Apps Script web apps respond to simple POST with no custom headers
-  // cleanly (avoids CORS preflight); GET is used for reads.
-  if(payload){
-    const res = await fetch(syncCfg.url, {
-      method:'POST',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify(payload)
+// ── Low-level API call ────────────────────────────────────────────
+async function callAppsScript(params, body=null){
+  if(!syncCfg.url) throw new Error('No sync URL configured');
+  const url = syncCfg.url + (syncCfg.url.includes('?')?'&':'?') + new URLSearchParams(params).toString();
+  const options = { method: body ? 'POST' : 'GET', redirect: 'follow' };
+  if(body){
+    // Apps Script requires text/plain for POST to avoid CORS preflight
+    options.headers = {'Content-Type':'text/plain;charset=utf-8'};
+    options.body = JSON.stringify(body);
+  }
+  const res = await fetch(url, options);
+  if(!res.ok) throw new Error('HTTP '+res.status+' — check Web App deployment');
+  const text = await res.text();
+  let json;
+  try{ json = JSON.parse(text); }
+  catch(e){ throw new Error('Invalid response from Apps Script. Check deployment settings.'); }
+  if(!json.success && json.error) throw new Error(json.error);
+  return json.result;
+}
+
+// ── Push local pending changes ─────────────────────────────────────
+async function pushChanges(showFeedback){
+  if(!syncCfg.url || syncInFlight || !navigator.onLine) return;
+  const changes = getQueuedChanges();
+  if(!Object.keys(changes).length) return;
+  syncInFlight=true; setSyncStatus('syncing');
+  try{
+    // Ensure all queued records have uuid before pushing
+    Object.values(changes).forEach(records=>{
+      records.forEach(r=>{ if(!r.uuid) r.uuid=generateUUID(); if(!r.updatedAt) r.updatedAt=new Date().toISOString(); });
     });
-    return await res.json();
-  }else{
-    const res = await fetch(syncCfg.url + (syncCfg.url.includes('?')?'&':'?') + 'action=load');
-    return await res.json();
-  }
-}
-
-async function pushToSheet(showUserFeedback){
-  if(!syncCfg.url || syncInFlight) return;
-  syncInFlight = true;
-  setSyncStatus('syncing');
-  try{
-    const result = await callSheetBackend({ action:'save', data: buildSyncPayload(), savedAt: new Date().toISOString(), savedBy: (getSession()||{}).username || 'admin' });
-    if(result && result.ok){
-      syncCfg.lastSyncedAt = result.savedAt || new Date().toISOString();
-      setSyncStatus('success');
-      if(showUserFeedback) showToast('Synced to Google Sheet','Your data has been saved to the cloud.','success');
-    }else{
-      setSyncStatus('error');
-      if(showUserFeedback) showToast('Sync Failed', (result&&result.error) || 'The Apps Script returned an error.', 'danger');
-    }
+    const result = await callAppsScript({action:'syncPush'},{deviceId:DEVICE_ID, changes});
+    offlineQueue=[]; saveOfflineQueue(); updateOfflineBanner();
+    syncCfg.lastSyncedAt=new Date().toISOString(); setSyncStatus('success');
+    if(showFeedback) showToast('Synced','Changes pushed to Google Sheets.','success');
   }catch(err){
-    setSyncStatus('offline');
-    if(showUserFeedback) showToast('Sync Failed','Could not reach the Google Sheet. Check your internet connection and Web App URL.','danger');
-  }finally{
-    syncInFlight = false;
-  }
+    setSyncStatus(navigator.onLine?'error':'offline');
+    if(showFeedback) showToast('Push Failed',err.message,'danger');
+  }finally{ syncInFlight=false; }
 }
 
-async function pullFromSheet(showUserFeedback){
-  if(!syncCfg.url) return false;
+// ── Pull latest changes from cloud ────────────────────────────────
+async function pullLatest(showFeedback){
+  if(!syncCfg.url || !navigator.onLine) return false;
   setSyncStatus('syncing');
   try{
-    const result = await callSheetBackend(null);
-    if(result && result.ok && !result.empty && result.data){
-      mergeCloudDataIntoDB(result.data);
-      syncCfg.lastSyncedAt = result.savedAt || new Date().toISOString();
-      setSyncStatus('success');
-      if(showUserFeedback) showToast('Pulled from Google Sheet','Latest cloud data has been loaded.','success');
+    // On first pull (no lastPullAt), fetch ALL data so existing sheet data shows up
+    const since = syncCfg.lastPullAt || '';
+    const result = await callAppsScript({action:'syncPull', since, deviceId:DEVICE_ID});
+    if(result && result.data){
+      applyCloudDelta(result.data);
+      syncCfg.lastSyncedAt = result.readAt || new Date().toISOString();
+      syncCfg.lastPullAt   = syncCfg.lastSyncedAt;
+      saveSyncCfg(); setSyncStatus('success');
+      if(showFeedback){
+        // Count total records pulled
+        const total = Object.values(result.data).reduce((s,arr)=>s+(Array.isArray(arr)?arr.length:0),0);
+        showToast('Sync Complete', total+' records loaded from Google Sheets.', 'success');
+      }
       return true;
-    }else if(result && result.ok && result.empty){
-      setSyncStatus('idle');
-      if(showUserFeedback) showToast('Sheet is Empty','No data has been saved to this Sheet yet. Use "Sync Now" to push your current data.','info');
-      return false;
-    }else{
-      setSyncStatus('error');
-      if(showUserFeedback) showToast('Pull Failed', (result&&result.error) || 'The Apps Script returned an error.', 'danger');
-      return false;
     }
+    setSyncStatus('idle'); return false;
   }catch(err){
-    setSyncStatus('offline');
-    if(showUserFeedback) showToast('Pull Failed','Could not reach the Google Sheet. Check your internet connection and Web App URL.','danger');
+    setSyncStatus(navigator.onLine?'error':'offline');
+    if(showFeedback) showToast('Pull Failed', err.message, 'danger');
     return false;
   }
 }
 
-function connectSheetBackend(){
-  const url = document.getElementById('sheetWebAppUrl').value.trim();
-  if(!url || !/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(url)){
-    showToast('Invalid URL','Please paste a valid Apps Script Web App URL ending in /exec.','danger');
-    return;
-  }
-  syncCfg.url = url;
-  saveSyncCfg();
-  setSyncStatus('idle');
-  showToast('Testing Connection…','Checking if the Google Sheet is reachable.','info');
-  callSheetBackend(null).then(result=>{
-    if(result && result.ok){
-      showConfirm('Connected!', result.empty ? 'Connection successful, and the Sheet is currently empty. Push your current SevaERP data to it now?' : 'Connection successful! This Sheet already has data saved — pull it into SevaERP now? (This will replace what you see on this device with the cloud copy.)', function(){
-        if(result.empty) pushToSheet(true); else pullFromSheet(true);
-      });
-    }else{
-      setSyncStatus('error');
-      showToast('Connection Failed', (result&&result.error) || 'Could not verify the Apps Script. Double-check the deployment is set to "Anyone" access.', 'danger');
-    }
-  }).catch(()=>{
-    setSyncStatus('offline');
-    showToast('Connection Failed','Could not reach that URL. Check your internet connection and that the URL is correct.','danger');
+// ── Apply cloud delta to local DB ─────────────────────────────────
+// Coerce string values from Google Sheets back to correct JS types
+function coerceRecord(rec, numericFields){
+  if(!rec) return rec;
+  numericFields.forEach(f=>{ if(rec[f]!==undefined && rec[f]!=='') rec[f]=Number(rec[f])||0; });
+  if(rec._deleted==='true')  rec._deleted=true;
+  if(rec._deleted==='false') rec._deleted=false;
+  if(rec._deleted==='')      rec._deleted=false;
+  return rec;
+}
+
+const NUMERIC_FIELDS = {
+  customers:   ['id'],
+  services:    ['id','customerId','amount','paidAmount'],
+  invoices:    ['id','customerId','subtotal','gstPct','gstAmount','discount','total','paid','balance'],
+  serviceInvoices:['id','customerId','subtotal','gstPct','gstAmount','discount','total','paid','balance'],
+  income:      ['id','customerId','amount'],
+  expense:     ['id','amount'],
+  loans:       ['id','amount','interestRate','emiAmount','totalEMI','paidEMI','remainingEMI','outstanding'],
+  emiPayments: ['id','loanId','amount'],
+  chits:       ['id','value','monthly','duration'],
+  inventory:   ['id','purchasePrice','sellingPrice','quantity','threshold'],
+  staff:       ['id','salary'],
+  attendance:  ['id','staffId'],
+  payroll:     ['id','staffId','amount'],
+  leads:       ['id'],
+  reminders:   ['id','customerId'],
+  documents:   ['id','customerId'],
+  tasks:       ['id','staffId'],
+  machines:    ['id','customerId','warrantyPeriodVal'],
+  printerReadings:['id','customerId','previousReading','currentReading','totalCopies','dueReading','ratePerCopy','billAmount'],
+  machineServices:['id','machineId','labourCharge','spareCost'],
+  maintenanceSchedule:['id','machineId'],
+  notifications:['id'],
+  auditLog:    ['id'],
+};
+
+function applyCloudDelta(remoteData){
+  if(!DB) return;
+  const localLogo = DB?.settings?.logo || '';
+
+  // Cloud sheet name → local DB key
+  const MAP = {
+    Customers:'customers', Services:'services',
+    ServiceInvoices:'invoices',   // stored as DB.invoices locally
+    Income:'income', Expense:'expense',
+    Loans:'loans', EMI:'emiPayments', Chits:'chits',
+    Inventory:'inventory', Staff:'staff', Attendance:'attendance',
+    Payroll:'payroll', Leads:'leads', Reminders:'reminders',
+    Documents:'documents', Tasks:'tasks', Machines:'machines',
+    PrinterReadings:'printerReadings', MachineService:'machineServices',
+    Maintenance:'maintenanceSchedule', Notifications:'notifications',
+    AuditLogs:'auditLog',
+  };
+
+  Object.entries(MAP).forEach(([cloudKey, localKey])=>{
+    const incoming = remoteData[cloudKey];
+    if(!Array.isArray(incoming) || !incoming.length) return;
+    if(!Array.isArray(DB[localKey])) DB[localKey]=[];
+
+    const numFields = NUMERIC_FIELDS[localKey] || [];
+
+    incoming.forEach(rawRemote=>{
+      // Coerce types (Google Sheets returns everything as string)
+      const remote = coerceRecord(Object.assign({}, rawRemote), numFields);
+
+      // Skip blank rows (Apps Script sometimes returns empty rows)
+      if(!remote.uuid && !remote.id) return;
+
+      // If no uuid, try to match by id (legacy local records)
+      let localIdx = -1;
+      if(remote.uuid){
+        localIdx = DB[localKey].findIndex(r=>r.uuid===remote.uuid);
+      }
+      if(localIdx===-1 && remote.id){
+        localIdx = DB[localKey].findIndex(r=>String(r.id)===String(remote.id));
+      }
+
+      const isDeleted = remote._deleted===true || remote._deleted==='true';
+
+      if(localIdx===-1){
+        if(isDeleted) return; // don't add records that are already deleted
+        // Assign uuid if missing (backfill for legacy cloud records)
+        if(!remote.uuid) remote.uuid = generateUUID();
+        DB[localKey].push(remote);
+      }else{
+        const local = DB[localKey][localIdx];
+        const localTs  = local.updatedAt  || '';
+        const remoteTs = remote.updatedAt || '';
+        // Last-write wins; also accept if local has no timestamp
+        if(!localTs || remoteTs >= localTs){
+          // Preserve local binary fields
+          if(cloudKey==='Documents' && local.base64) remote.base64 = local.base64;
+          if(cloudKey==='Machines'){
+            ['photoBase64','invoiceBase64','warrantyCardBase64'].forEach(k=>{
+              if(local[k]) remote[k]=local[k];
+            });
+          }
+          // Preserve uuid if remote is missing it
+          if(!remote.uuid && local.uuid) remote.uuid = local.uuid;
+          DB[localKey][localIdx] = remote;
+        }
+      }
+    });
+
+    // Remove soft-deleted records from local array
+    DB[localKey] = DB[localKey].filter(r=>r._deleted!==true && r._deleted!=='true');
+  });
+
+  if(localLogo && DB.settings) DB.settings.logo = localLogo;
+
+  // Fix meta counters so new records don't get duplicate IDs
+  fixMetaCounters();
+
+  saveDB();
+  populateAllDropdowns();
+  renderPage(getCurrentPage());
+}
+
+// Ensure meta counters are above the max existing ID after a cloud pull
+function fixMetaCounters(){
+  const MAP2 = {
+    nextCustId:'customers', nextSvcId:'services', nextIncId:'income',
+    nextExpId:'expense', nextLoanId:'loans', nextInvId:'invoices',
+    nextInvtId:'inventory', nextStaffId:'staff', nextLeadId:'leads',
+    nextRemId:'reminders', nextDocId:'documents', nextTaskId:'tasks',
+    nextMachineId:'machines', nextReadingId:'printerReadings',
+    nextMachineServiceId:'machineServices', nextMaintenanceId:'maintenanceSchedule',
+  };
+  Object.entries(MAP2).forEach(([metaKey, colKey])=>{
+    if(!Array.isArray(DB[colKey])||!DB[colKey].length) return;
+    const maxId = DB[colKey].reduce((mx,r)=>Math.max(mx,Number(r.id)||0),0);
+    if(maxId >= (DB.meta[metaKey]||1)) DB.meta[metaKey] = maxId+1;
   });
 }
 
+// ── Full sync (push then pull) ────────────────────────────────────
+async function doFullSync(showFeedback){
+  await pushChanges(false);
+  await pullLatest(showFeedback);
+}
+
+// ── Flush offline queue when back online ──────────────────────────
+async function flushOfflineQueue(){
+  if(!offlineQueue.length || !syncCfg.url) return;
+  showToast('Reconnected','Syncing offline changes…','info');
+  await pushChanges(true);
+}
+
+// ── Push payload builder (legacy compat) ──────────────────────────
+function buildSyncPayload(){
+  const clone = JSON.parse(JSON.stringify(DB));
+  if(clone.settings) delete clone.settings.logo;
+  if(Array.isArray(clone.documents)) clone.documents=clone.documents.map(d=>({...d,base64:undefined}));
+  if(Array.isArray(clone.machines)) clone.machines=clone.machines.map(m=>{const c={...m};delete c.photoBase64;delete c.invoiceBase64;delete c.warrantyCardBase64;return c;});
+  return clone;
+}
+function mergeCloudDataIntoDB(cloudData){ applyCloudDelta({Customers:cloudData.customers, Services:cloudData.services}); }
+
+// ── Backward-compat wrappers ──────────────────────────────────────
+async function pushToSheet(show){ await pushChanges(show); }
+async function pullFromSheet(show){ return await pullLatest(show); }
+
+// ── UI Actions ────────────────────────────────────────────────────
 function manualSyncNow(){
-  if(!syncCfg.url){ showToast('Not Connected','Paste your Apps Script Web App URL and click Connect & Test first.','warning'); return; }
-  pushToSheet(true);
+  if(!syncCfg.url){ showToast('Not Connected','Configure Google Sheet URL in Settings first.','warning'); return; }
+  doFullSync(true);
+}
+
+// Push ALL local data to sheet (not just the offline queue) — useful for first-time upload
+async function pushAllLocalData(){
+  if(!syncCfg.url){ showToast('Not Connected','','warning'); return; }
+  if(syncInFlight){ showToast('Sync in progress','Please wait…','info'); return; }
+  showToast('Uploading all data…','This may take a moment.','info');
+  syncInFlight=true; setSyncStatus('syncing');
+  // Build changes object from all local collections
+  const PUSH_MAP = {
+    Customers:'customers', Services:'services', ServiceInvoices:'invoices',
+    Income:'income', Expense:'expense', Loans:'loans', EMI:'emiPayments',
+    Chits:'chits', Inventory:'inventory', Staff:'staff', Attendance:'attendance',
+    Payroll:'payroll', Leads:'leads', Reminders:'reminders',
+    Documents:'documents', Tasks:'tasks', Machines:'machines',
+    PrinterReadings:'printerReadings', MachineService:'machineServices',
+    Maintenance:'maintenanceSchedule', Notifications:'notifications',
+    AuditLogs:'auditLog',
+  };
+  const changes = {};
+  const now = new Date().toISOString();
+  Object.entries(PUSH_MAP).forEach(([sheetName, localKey])=>{
+    if(!Array.isArray(DB[localKey])||!DB[localKey].length) return;
+    changes[sheetName] = DB[localKey].map(r=>{
+      if(!r.uuid) r.uuid=generateUUID();
+      if(!r.createdAt) r.createdAt=now;
+      if(!r.updatedAt) r.updatedAt=now;
+      return r;
+    });
+  });
+  try{
+    await callAppsScript({action:'syncPush'},{deviceId:DEVICE_ID, changes});
+    syncCfg.lastSyncedAt=new Date().toISOString(); setSyncStatus('success'); saveSyncCfg();
+    const total=Object.values(changes).reduce((s,a)=>s+a.length,0);
+    showToast('Upload Complete', total+' records sent to Google Sheets!','success');
+    saveDB();
+  }catch(err){
+    setSyncStatus('error');
+    showToast('Upload Failed',err.message,'danger');
+  }finally{ syncInFlight=false; }
 }
 function manualPullFromCloud(){
-  if(!syncCfg.url){ showToast('Not Connected','Paste your Apps Script Web App URL and click Connect & Test first.','warning'); return; }
-  showConfirm('Pull Latest from Sheet?','This will replace the data shown on this device with the latest cloud copy. Continue?', function(){ pullFromSheet(true); });
+  if(!syncCfg.url){ showToast('Not Connected','Configure Google Sheet URL in Settings first.','warning'); return; }
+  showConfirm('Pull from Cloud?','This will merge the latest cloud data into this device. Continue?',()=>pullLatest(true));
 }
 function disconnectSheetBackend(){
-  showConfirm('Disconnect Google Sheet?','SevaERP will stop syncing and keep working from this device only. Your data in the Sheet stays untouched.', function(){
-    syncCfg = { url:'', autoSync:false, lastSyncedAt:null, lastSyncStatus:'idle' };
-    saveSyncCfg();
-    document.getElementById('sheetWebAppUrl').value = '';
-    document.getElementById('autoSyncToggle').classList.remove('active');
-    setSyncStatus('idle');
-    showToast('Disconnected','Google Sheet sync has been turned off.','success');
+  showConfirm('Disconnect?','Stop syncing? Your local data stays intact.',()=>{
+    stopAutoSync();
+    syncCfg={ url:'', autoSync:false, lastSyncedAt:null, lastSyncStatus:'idle', lastPullAt:null };
+    saveSyncCfg(); setSyncStatus('idle');
+    document.getElementById('sheetWebAppUrl').value='';
+    showToast('Disconnected','Sync turned off. Working locally only.','success');
   });
 }
+
+function connectSheetBackend(){
+  const url = document.getElementById('sheetWebAppUrl').value.trim();
+  if(!url || !url.startsWith('https://script.google.com/macros/s/')){
+    showToast('Invalid URL','Please paste a valid Apps Script Web App URL.','danger'); return;
+  }
+  syncCfg.url = url;
+  syncCfg.lastPullAt = ''; // Reset so we get ALL data on first pull
+  saveSyncCfg(); setSyncStatus('idle');
+  showToast('Testing Connection…','Checking Apps Script…','info');
+  callAppsScript({action:'ping'}).then(result=>{
+    if(result && result.ok!==false){
+      showToast('Connected!','Initialising sheets and loading data…','success');
+      callAppsScript({action:'init'}).then(()=>{
+        startAutoSync();
+        // Full pull with no 'since' to get ALL existing sheet data
+        pullLatest(true).then(()=>{ populateAllDropdowns(); renderPage(getCurrentPage()); });
+      }).catch(()=>{
+        startAutoSync();
+        pullLatest(true).then(()=>{ populateAllDropdowns(); renderPage(getCurrentPage()); });
+      });
+    }else{
+      setSyncStatus('error');
+      showToast('Connection Failed','Check the Web App URL and make sure "Anyone" access is enabled.','danger');
+    }
+  }).catch(()=>{ setSyncStatus('offline'); showToast('Connection Failed','Could not reach the URL.','danger'); });
+}
+
 function copyAppsScriptCode(){
   const box = document.getElementById('appsScriptCodeBox');
+  if(!box) return;
   box.select();
-  try{
-    navigator.clipboard.writeText(box.value).then(()=> showToast('Copied','Apps Script code copied to clipboard.','success'));
-  }catch(e){
-    document.execCommand('copy');
-    showToast('Copied','Apps Script code copied to clipboard.','success');
-  }
+  try{ navigator.clipboard.writeText(box.value).then(()=>showToast('Copied','Apps Script code copied.','success')); }catch(e){ document.execCommand('copy'); showToast('Copied','Copied to clipboard.','success'); }
 }
 function populateAppsScriptCodeBox(){
   const box = document.getElementById('appsScriptCodeBox');
-  if(box) box.value = APPS_SCRIPT_SOURCE;
+  if(box) box.value = typeof APPS_SCRIPT_SOURCE!=='undefined' ? APPS_SCRIPT_SOURCE : '// See the separately provided Code.gs file';
 }
+
+// ── Notification System ───────────────────────────────────────────
+// (DB.notifications initialised after loadDB() in DOMContentLoaded)
+
+function addNotification(type, title, message, priority='Normal', module='', refId=''){
+  if(!DB) return; // safety guard - called before DB loaded
+  const notif = {
+    uuid:generateUUID(), id:Date.now(), type, title, message, priority,
+    module, refId, read:false,
+    createdAt:new Date().toISOString(), updatedAt:new Date().toISOString()
+  };
+  if(!Array.isArray(DB.notifications)) DB.notifications=[];
+  DB.notifications.unshift(notif);
+  if(DB.notifications.length>200) DB.notifications=DB.notifications.slice(0,200);
+  updateNotifBell();
+  queueOfflineChange('Notifications', notif);
+}
+
+function updateNotifBell(){
+  const unread=(DB.notifications||[]).filter(n=>!n.read).length;
+  const dot=document.getElementById('notifDot');
+  if(dot) dot.style.display=unread>0?'block':'none';
+  renderNotifPanel();
+}
+
+function renderNotifPanel(){
+  const wrap=document.getElementById('notifListWrap');
+  if(!wrap) return;
+  const list=(DB.notifications||[]).slice(0,30);
+  if(!list.length){ wrap.innerHTML='<div class="p-4 text-center" style="color:var(--text-3);font-size:13px;">No notifications</div>'; return; }
+  const icons={PrinterDue:'fa-print',EMIDue:'fa-calendar-day',LoanDue:'fa-hand-holding-dollar',WarrantyExpiry:'fa-shield-halved',ServiceFollowup:'fa-file-pen',MaintenanceDue:'fa-screwdriver-wrench',default:'fa-bell'};
+  const colors={Critical:'var(--danger)',High:'var(--warning)',Normal:'var(--info)'};
+  wrap.innerHTML=list.map(n=>`
+    <div class="d-flex gap-2 p-3 border-bottom" style="border-color:var(--border-soft);background:${n.read?'transparent':'var(--marigold-light)'};cursor:pointer;" onclick="markNotifRead('${n.uuid}')">
+      <div style="width:32px;height:32px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:${(colors[n.priority]||colors.Normal)}22;color:${(colors[n.priority]||colors.Normal)};font-size:12px;">
+        <i class="fa-solid ${icons[n.type]||icons.default}"></i></div>
+      <div class="flex-grow-1">
+        <div style="font-size:12.5px;font-weight:700;">${escapeHtml(n.title)}</div>
+        <div style="font-size:11.5px;color:var(--text-2);">${escapeHtml(n.message)}</div>
+        <div style="font-size:10.5px;color:var(--text-3);">${fmtDateTime(n.createdAt)}</div>
+      </div>
+      <i class="fa-solid fa-trash" style="font-size:11px;color:var(--text-3);flex-shrink:0;" onclick="event.stopPropagation();deleteNotif('${n.uuid}')"></i>
+    </div>`).join('');
+}
+
+function markNotifRead(uuid){
+  const n=(DB.notifications||[]).find(x=>x.uuid===uuid); if(!n) return;
+  n.read=true; n.updatedAt=new Date().toISOString();
+  updateNotifBell(); saveDB(); queueOfflineChange('Notifications',n);
+}
+function clearAllNotifications(){
+  (DB.notifications||[]).forEach(n=>{ n.read=true; n.updatedAt=new Date().toISOString(); });
+  updateNotifBell(); saveDB();
+}
+function deleteNotif(uuid){
+  const n=(DB.notifications||[]).find(x=>x.uuid===uuid); if(!n) return;
+  n._deleted=true; n.updatedAt=new Date().toISOString();
+  DB.notifications=DB.notifications.filter(x=>x.uuid!==uuid);
+  updateNotifBell(); saveDB(); queueOfflineChange('Notifications',n);
+}
+
+// ── Printer Due Alert Checker ──────────────────────────────────────
+function checkPrinterDueAlerts(){
+  if(!Array.isArray(DB.printerReadings)||!DB.printerReadings.length) return;
+  // Latest reading per printer
+  const latestByPrinter={};
+  DB.printerReadings.forEach(r=>{
+    const key=r.printerId||r.printerName;
+    if(!latestByPrinter[key]||r.readingDate>latestByPrinter[key].readingDate) latestByPrinter[key]=r;
+  });
+  Object.values(latestByPrinter).forEach(r=>{
+    const cur=Number(r.currentReading)||Number(r.closing)||0;
+    const due=Number(r.dueReading)||0;
+    if(!due) return;
+    const rem=due-cur;
+    let priority='', title='', type='PrinterDue';
+    if(rem<=100)      { priority='Critical'; title=`🔴 CRITICAL: ${r.printerName} — ${rem} copies left to due reading`; }
+    else if(rem<=200) { priority='High';     title=`🟠 High Alert: ${r.printerName} — ${rem} copies to due`; }
+    else if(rem<=500) { priority='Normal';   title=`🟡 ${r.printerName} approaching due reading (${rem} left)`; }
+    if(!priority) return;
+    // Avoid duplicate notifications for same printer+priority today
+    const todayKey=todayStr();
+    const exists=(DB.notifications||[]).find(n=>n.type===type&&n.refId===String(r.uuid||r.id)&&n.createdAt&&n.createdAt.slice(0,10)===todayKey&&n.priority===priority);
+    if(exists) return;
+    const msg=`Customer: ${r.customerName||'Unknown'} | Current: ${cur.toLocaleString('en-IN')} | Due: ${due.toLocaleString('en-IN')} | Remaining: ${rem.toLocaleString('en-IN')} copies`;
+    addNotification(type,title,msg,priority,'PrinterReadings',String(r.uuid||r.id));
+  });
+}
+
+// ── Auto reminder generator for printer readings ───────────────────
+function autoGeneratePrinterReminder(reading){
+  const cur=Number(reading.currentReading)||Number(reading.closing)||0;
+  const due=Number(reading.dueReading)||0;
+  if(!due) return;
+  const rem=due-cur;
+  if(rem>500) return;
+  const priority = rem<=100?'Critical':rem<=200?'High':'Normal';
+  const remObj={
+    uuid:generateUUID(), id:Date.now(),
+    customerId:reading.customerId, customerName:reading.customerName||'',
+    type:'Printer',
+    service:`${reading.printerName} — Reading Due`,
+    appNo:'', linkedServiceId:null,
+    date:todayStr(), status:'Open',
+    priority,
+    notes:`Current: ${cur}, Due: ${due}, Remaining: ${rem}`,
+    createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(),
+    _autogenerated:true
+  };
+  if(!Array.isArray(DB.reminders)) DB.reminders=[];
+  // Avoid duplicates
+  const dup=DB.reminders.find(r=>r._autogenerated&&r.service===remObj.service&&r.status==='Open');
+  if(!dup){
+    DB.reminders.push(remObj);
+    queueOfflineChange('Reminders', remObj);
+  }
+}
+
+// ── EMI Due Checker ───────────────────────────────────────────────
+function checkEMIDueAlerts(){
+  if(!Array.isArray(DB.loans)) return;
+  const today=todayStr();
+  DB.loans.forEach(loan=>{
+    if(!loan.nextDueDate||loan.status==='Closed') return;
+    const diff=daysFromToday(loan.nextDueDate);
+    if(diff<=7 && diff>=0){
+      const exists=(DB.notifications||[]).find(n=>n.type==='EMIDue'&&n.refId===String(loan.uuid||loan.id)&&n.createdAt&&n.createdAt.slice(0,10)===today);
+      if(!exists) addNotification('EMIDue',`EMI Due: ${loan.name}`,`₹${fmtMoney(loan.emiAmount)} due on ${fmtDate(loan.nextDueDate)}`,'High','Loans',String(loan.uuid||loan.id));
+    }
+  });
+}
+
+// ── Warranty Expiry Checker ────────────────────────────────────────
+function checkWarrantyAlerts(){
+  if(!Array.isArray(DB.machines)) return;
+  const today=todayStr();
+  DB.machines.forEach(m=>{
+    const exp=calcWarrantyExpiry(m.warrantyStart,m.warrantyPeriodVal,m.warrantyPeriodUnit);
+    if(!exp) return;
+    const diff=daysFromToday(exp);
+    if(diff<=30&&diff>=0){
+      const exists=(DB.notifications||[]).find(n=>n.type==='WarrantyExpiry'&&n.refId===String(m.uuid||m.id)&&n.createdAt&&n.createdAt.slice(0,10)===today);
+      if(!exists) addNotification('WarrantyExpiry',`Warranty Expiring: ${m.name}`,`${m.customerName||''} — expires ${fmtDate(exp)} (${diff}d left)`,diff<=7?'High':'Normal','Machines',String(m.uuid||m.id));
+    }
+  });
+}
+
+// ── Run all alert checkers ─────────────────────────────────────────
+function runAllAlertCheckers(){
+  if(!DB) return; // safety guard
+  checkPrinterDueAlerts();
+  checkEMIDueAlerts();
+  checkWarrantyAlerts();
+}
+
 
 /* ===================== UTILITIES ===================== */
 function fmtMoney(n){
@@ -3201,6 +3742,7 @@ const PAGE_TITLES = {
   loans:['Loans','Business loans, vehicle loans & credit cards'],
   chits:['Chit Finance','Track chit fund subscriptions'],
   invoice:['Invoice','Generate, print and download invoices'],
+  serviceinvoices:['Service Invoices','GST invoices with auto-numbering, PDF download and payment tracking'],
   inventory:['Inventory','Stationery & consumables stock'],
   tasks:['Tasks','Assign and track staff tasks'],
   documents:['Documents','Customer document storage'],
@@ -3266,6 +3808,7 @@ function renderPage(page){
     case 'machreports': /* generated on demand */ break;
     case 'reports': /* generated on demand */ break;
     case 'auditlog': renderAuditLog(); break;
+    case 'serviceinvoices': renderServiceInvoices(); break;
     case 'settings': renderSettings(); break;
   }
   renderNotifications();
@@ -3345,9 +3888,14 @@ function bootApp(){
   }
   populateAllDropdowns();
   navigateTo('dashboard');
-  setSyncStatus(syncCfg.lastSyncStatus || 'idle');
-  if(syncCfg.url){
-    pullFromSheet(false).then(()=>{ populateAllDropdowns(); renderPage(getCurrentPage()); });
+  setSyncStatus(syncCfg.url ? 'idle' : 'idle');
+  renderSettingsSyncStatus();
+  if(syncCfg.url && navigator.onLine){
+    setSyncStatus('syncing');
+    // Small delay so dashboard renders first, then pull
+    setTimeout(()=>{
+      pullLatest(false).then(()=>{ populateAllDropdowns(); renderPage(getCurrentPage()); });
+    }, 500);
   }
 }
 
@@ -3396,6 +3944,24 @@ window.addEventListener('DOMContentLoaded', function(){
   loadDB();
   loadSyncCfg();
   populateAppsScriptCodeBox();
+  // ── Enterprise v2 init (runs AFTER loadDB so DB is not null) ────
+  // Safely init DB collections that may be missing from old localStorage data
+  if(DB){
+    if(!Array.isArray(DB.notifications))    DB.notifications    = [];
+    if(!Array.isArray(DB.serviceInvoices))  DB.serviceInvoices  = [];
+    if(!DB.meta)                            DB.meta             = {};
+    if(!DB.meta.nextSInvId)                 DB.meta.nextSInvId  = 1;
+    if(!DB.meta.sInvoiceCounter)            DB.meta.sInvoiceCounter = 1;
+  }
+  // Build initial snapshot so saveDB diffs work correctly from first save
+  if(typeof _buildSnapshot==='function') _dbSnapshot = _buildSnapshot();
+  ensureUUIDs();
+  loadOfflineQueue();
+  updateOfflineBanner();
+  if(syncCfg.url && syncCfg.autoSync && navigator.onLine){ startAutoSync(); setTimeout(()=>doFullSync(false), 2000); }
+  setTimeout(runAllAlertCheckers, 3000); // check alerts after 3s
+  setInterval(runAllAlertCheckers, 3600000); // check every hour
+  // ────────────────────────────────────────────────────────────────
   // set today's defaults on date inputs
   ['svcAppliedDate','incDate','expDate','bankTxnDate','emiDate','chitPayDate','invDate','payrollDate','attendanceDate','readingDate','msServiceDate','maintServiceDate'].forEach(id=>{
     const el = document.getElementById(id); if(el) el.value = todayStr();
@@ -3806,14 +4372,21 @@ document.getElementById('customerForm').addEventListener('submit', function(e){
     dob: document.getElementById('custDob').value,
     notes: document.getElementById('custNotes').value.trim()
   };
+  const now = new Date().toISOString();
   if(id){
     const c = DB.customers.find(x=>x.id===Number(id));
     Object.assign(c, data);
+    c.updatedAt = now;
+    if(!c.uuid) c.uuid = generateUUID();
+    if(!c.createdAt) c.createdAt = now;
     logAudit('Edit','Customers', `Updated customer ${c.name}`);
     showToast('Customer Updated', c.name+"'s record has been updated.", 'success');
   }else{
-    data.id = DB.meta.nextCustId++;
-    data.addedOn = todayStr();
+    data.id        = DB.meta.nextCustId++;
+    data.addedOn   = todayStr();
+    data.uuid      = generateUUID();
+    data.createdAt = now;
+    data.updatedAt = now;
     DB.customers.push(data);
     logAudit('Add','Customers', `Added new customer ${data.name}`);
     showToast('Customer Added', data.name+' has been added.', 'success');
@@ -3829,6 +4402,11 @@ function deleteCustomer(id){
   if(!c) return;
   const linkedServices = DB.services.filter(s=>s.customerId===id).length;
   showConfirm('Delete Customer?', `Delete "${c.name}"? ${linkedServices?('This customer has '+linkedServices+' linked service record(s) which will remain but show as unlinked.'):'This cannot be undone.'}`, function(){
+    // Soft-delete: mark and queue to cloud, then remove from local array
+    c._deleted = true;
+    c.updatedAt = new Date().toISOString();
+    if(!c.uuid) c.uuid = generateUUID();
+    queueOfflineChange('Customers', Object.assign({},c));
     DB.customers = DB.customers.filter(x=>x.id!==id);
     logAudit('Delete','Customers', `Deleted customer ${c.name}`);
     saveDB();
@@ -4104,12 +4682,17 @@ document.getElementById('serviceForm').addEventListener('submit', function(e){
     serviceId = Number(id);
     const s = DB.services.find(x=>x.id===serviceId);
     Object.assign(s, data);
+    s.updatedAt = new Date().toISOString();
+    if(!s.uuid) s.uuid = generateUUID();
     // remove old auto income tied to this service, then re-add based on new paid amount
     removeLinkedIncome(serviceId);
     logAudit('Edit','Services', `Updated service "${data.serviceName}" for ${customer.name}`);
   }else{
     serviceId = DB.meta.nextSvcId++;
-    data.id = serviceId;
+    data.id        = serviceId;
+    data.uuid      = generateUUID();
+    data.createdAt = new Date().toISOString();
+    data.updatedAt = data.createdAt;
     DB.services.push(data);
     logAudit('Add','Services', `New service "${data.serviceName}" for ${customer.name}`);
   }
@@ -5439,7 +6022,97 @@ function previewInvoice(id){
 function printInvoicePreview(){
   const content = document.getElementById('invoicePreviewBody').innerHTML;
   const w = window.open('', '_blank');
-  w.document.write(`<html><head><title>Invoice</title><meta charset="utf-8"><style>body{font-family:Arial,sans-serif;color:#111;padding:20px;}</style></head><body>${content}</body></html>`);
+  w.document.write(`<html><head><title>Invoice</title><meta charset="utf-8"><style>body{font-family:Arial,sans-serif;color:#111;padding:20px;}</style></head><body>${content}
+<!-- SERVICE INVOICE MODAL -->
+<div class="modal fade" id="serviceInvoiceModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="sInvModalTitle">New Service Invoice</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="serviceInvoiceForm">
+          <input type="hidden" id="sInvId">
+          <input type="hidden" id="sInvUuid">
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label class="form-label">Invoice No.</label>
+              <input type="text" class="form-control mono" id="sInvNo" readonly placeholder="Auto-generated">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Invoice Date *</label>
+              <input type="date" class="form-control" id="sInvDate" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Status</label>
+              <select class="form-select" id="sInvStatus"><option>Unpaid</option><option>Partial</option><option>Paid</option></select>
+            </div>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Customer *</label>
+              <select class="form-select" id="sInvCustomer" required>
+                <option value="">-- Select Customer --</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Service</label>
+              <input type="text" class="form-control" id="sInvServiceName" placeholder="Service / description">
+            </div>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-3">
+              <label class="form-label">Subtotal (₹)</label>
+              <input type="number" class="form-control" id="sInvSubtotal" min="0" value="0" oninput="calcSInvTotals()">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">GST %</label>
+              <select class="form-select" id="sInvGstPct" onchange="calcSInvTotals()">
+                <option value="0">0%</option><option value="5">5%</option>
+                <option value="12">12%</option><option value="18">18%</option><option value="28">28%</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Discount (₹)</label>
+              <input type="number" class="form-control" id="sInvDiscount" min="0" value="0" oninput="calcSInvTotals()">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Total (₹)</label>
+              <input type="text" class="form-control mono fw-bold" id="sInvTotal" readonly>
+            </div>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label class="form-label">Amount Paid (₹)</label>
+              <input type="number" class="form-control" id="sInvPaid" min="0" value="0" oninput="calcSInvTotals()">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Balance (₹)</label>
+              <input type="text" class="form-control mono" id="sInvBalance" readonly>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Payment Mode</label>
+              <select class="form-select" id="sInvPayMode"><option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option></select>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Notes</label>
+            <textarea class="form-control" id="sInvNotes" rows="2"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-app" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-outline-app" onclick="printServiceInvoice()"><i class="fa-solid fa-print me-1"></i>Print</button>
+        <button type="button" class="btn btn-outline-app" onclick="downloadServiceInvoicePDF()"><i class="fa-solid fa-file-pdf me-1"></i>PDF</button>
+        <button type="button" class="btn btn-marigold" onclick="saveServiceInvoice()"><i class="fa-solid fa-check me-1"></i>Save Invoice</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body></html>`);
   w.document.close();
   setTimeout(()=>{ w.print(); }, 300);
 }
@@ -7830,6 +8503,228 @@ document.getElementById('restoreFileInput').addEventListener('change', function(
   });
   e.target.value = '';
 });
+
+/* ====================================================================
+   SERVICE INVOICE MODULE
+==================================================================== */
+// (DB.serviceInvoices and meta counters initialised after loadDB())
+
+function renderServiceInvoices(){
+  if(!DB) return; // safety guard
+  let list = [...(DB.serviceInvoices||[])];
+  const q = (document.getElementById('sInvSearch')?.value||'').toLowerCase();
+  if(q) list = list.filter(i=>(i.invoiceNo||'').toLowerCase().includes(q)||(i.customerName||'').toLowerCase().includes(q)||(i.serviceName||'').toLowerCase().includes(q));
+  const sf = document.getElementById('sInvStatusFilter')?.value||'';
+  if(sf) list = list.filter(i=>i.status===sf);
+  const from = document.getElementById('sInvFrom')?.value, to = document.getElementById('sInvTo')?.value;
+  if(from) list = list.filter(i=>i.invoiceDate>=from);
+  if(to)   list = list.filter(i=>i.invoiceDate<=to);
+  list.sort((a,b)=>a.invoiceDate<b.invoiceDate?1:-1);
+
+  const totalBilled  = list.reduce((s,i)=>s+Number(i.total||0),0);
+  const totalPaid    = list.reduce((s,i)=>s+Number(i.paid||0),0);
+  const totalBal     = totalBilled - totalPaid;
+  document.getElementById('sInvTotalCount').textContent = list.length;
+  document.getElementById('sInvTotalPaid').textContent  = fmtMoney(totalPaid);
+  document.getElementById('sInvTotalBal').textContent   = fmtMoney(totalBal);
+
+  const body = document.getElementById('sInvBody');
+  if(!body) return;
+  document.getElementById('sInvEmpty')?.classList.toggle('d-none', list.length>0);
+  const statusCls = {Unpaid:'bs-rejected',Partial:'bs-pending',Paid:'bs-completed'};
+  body.innerHTML = list.map(i=>`
+    <tr>
+      <td class="mono fw-bold">${escapeHtml(i.invoiceNo||'')}</td>
+      <td>${fmtDate(i.invoiceDate)}</td>
+      <td>${escapeHtml(i.customerName||'')}</td>
+      <td>${escapeHtml(i.serviceName||'—')}</td>
+      <td class="text-end mono">${fmtMoney(i.total)}</td>
+      <td class="text-end mono up-text">${fmtMoney(i.paid)}</td>
+      <td class="text-end mono down-text">${fmtMoney(i.balance||0)}</td>
+      <td><span class="badge-status ${statusCls[i.status]||'bs-pending'}">${escapeHtml(i.status||'Unpaid')}</span></td>
+      <td class="text-end">
+        <button class="btn btn-outline-app btn-icon-sq" title="Edit" onclick="openServiceInvoiceModal(${i.id})"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn btn-outline-app btn-icon-sq" title="PDF" onclick="downloadSInvPDF(${i.id})"><i class="fa-solid fa-file-pdf"></i></button>
+        <button class="btn btn-ghost-danger btn-icon-sq" title="Delete" onclick="deleteSInv(${i.id})"><i class="fa-solid fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+}
+['sInvSearch','sInvStatusFilter','sInvFrom','sInvTo'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('input', renderServiceInvoices);
+  document.getElementById(id)?.addEventListener('change', renderServiceInvoices);
+});
+
+function calcSInvTotals(){
+  const sub  = Number(document.getElementById('sInvSubtotal')?.value)||0;
+  const gst  = Number(document.getElementById('sInvGstPct')?.value)||0;
+  const disc = Number(document.getElementById('sInvDiscount')?.value)||0;
+  const paid = Number(document.getElementById('sInvPaid')?.value)||0;
+  const gstAmt = sub * gst / 100;
+  const total  = sub + gstAmt - disc;
+  const bal    = total - paid;
+  if(document.getElementById('sInvTotal'))   document.getElementById('sInvTotal').value   = total.toFixed(2);
+  if(document.getElementById('sInvBalance')) document.getElementById('sInvBalance').value = bal.toFixed(2);
+  // Auto status
+  const statusEl = document.getElementById('sInvStatus');
+  if(statusEl){
+    if(paid<=0)         statusEl.value='Unpaid';
+    else if(paid<total) statusEl.value='Partial';
+    else                statusEl.value='Paid';
+  }
+}
+
+function openServiceInvoiceModal(id){
+  populateAllDropdowns();
+  document.getElementById('serviceInvoiceForm')?.reset();
+  document.getElementById('sInvId').value='';
+  document.getElementById('sInvUuid').value='';
+  document.getElementById('sInvDate').value=todayStr();
+  // Generate next invoice number
+  const nextNum = DB.meta.sInvoiceCounter||1;
+  document.getElementById('sInvNo').value = 'SINV-'+String(nextNum).padStart(5,'0');
+  calcSInvTotals();
+  if(id){
+    const inv = (DB.serviceInvoices||[]).find(x=>x.id===id);
+    if(!inv) return;
+    document.getElementById('sInvModalTitle').textContent='Edit Service Invoice';
+    document.getElementById('sInvId').value      = inv.id;
+    document.getElementById('sInvUuid').value    = inv.uuid||'';
+    document.getElementById('sInvNo').value      = inv.invoiceNo;
+    document.getElementById('sInvDate').value    = inv.invoiceDate;
+    document.getElementById('sInvCustomer').value= inv.customerId||'';
+    document.getElementById('sInvServiceName').value = inv.serviceName||'';
+    document.getElementById('sInvSubtotal').value= inv.subtotal||0;
+    document.getElementById('sInvGstPct').value  = inv.gstPct||0;
+    document.getElementById('sInvDiscount').value= inv.discount||0;
+    document.getElementById('sInvPaid').value    = inv.paid||0;
+    document.getElementById('sInvPayMode').value = inv.paymentMode||'Cash';
+    document.getElementById('sInvStatus').value  = inv.status||'Unpaid';
+    document.getElementById('sInvNotes').value   = inv.notes||'';
+    calcSInvTotals();
+  }else{
+    document.getElementById('sInvModalTitle').textContent='New Service Invoice';
+  }
+  new bootstrap.Modal(document.getElementById('serviceInvoiceModal')).show();
+}
+
+function saveServiceInvoice(){
+  const id = document.getElementById('sInvId').value;
+  const customerId = document.getElementById('sInvCustomer').value;
+  const customer = customerId ? DB.customers.find(c=>c.id===Number(customerId)) : null;
+  if(!customer){ showToast('Select Customer','Please select a customer.','danger'); return; }
+  const sub    = Number(document.getElementById('sInvSubtotal').value)||0;
+  const gstPct = Number(document.getElementById('sInvGstPct').value)||0;
+  const disc   = Number(document.getElementById('sInvDiscount').value)||0;
+  const paid   = Number(document.getElementById('sInvPaid').value)||0;
+  const gstAmt = sub * gstPct / 100;
+  const total  = sub + gstAmt - disc;
+  const bal    = total - paid;
+  const now    = new Date().toISOString();
+  const data = {
+    invoiceNo:   document.getElementById('sInvNo').value,
+    invoiceDate: document.getElementById('sInvDate').value,
+    customerId:  customer.id, customerName: customer.name,
+    serviceName: document.getElementById('sInvServiceName').value.trim(),
+    subtotal: sub, gstPct, gstAmount: gstAmt, discount: disc,
+    total, paid, balance: bal,
+    paymentMode: document.getElementById('sInvPayMode').value,
+    status:      document.getElementById('sInvStatus').value,
+    notes:       document.getElementById('sInvNotes').value.trim(),
+    updatedAt:   now
+  };
+  if(!Array.isArray(DB.serviceInvoices)) DB.serviceInvoices=[];
+  if(id){
+    const idx = DB.serviceInvoices.findIndex(x=>x.id===Number(id));
+    const existing = DB.serviceInvoices[idx];
+    Object.assign(existing, data);
+    logAudit('Edit','ServiceInvoices',`Updated ${data.invoiceNo}`);
+    queueOfflineChange('ServiceInvoices', existing);
+  }else{
+    data.id        = DB.meta.nextSInvId++;
+    data.uuid      = generateUUID();
+    data.createdAt = now;
+    DB.meta.sInvoiceCounter++;
+    DB.serviceInvoices.push(data);
+    logAudit('Add','ServiceInvoices',`Created ${data.invoiceNo} for ${customer.name} (${fmtMoney(total)})`);
+    queueOfflineChange('ServiceInvoices', data);
+  }
+  saveDB(); renderServiceInvoices();
+  showToast('Invoice Saved', data.invoiceNo+' — '+fmtMoney(total), 'success');
+  bootstrap.Modal.getInstance(document.getElementById('serviceInvoiceModal'))?.hide();
+  scheduleAutoSync();
+}
+
+function deleteSInv(id){
+  const inv = (DB.serviceInvoices||[]).find(x=>x.id===id);
+  if(!inv) return;
+  showConfirm('Delete Invoice?',`Delete ${inv.invoiceNo}?`,()=>{
+    inv._deleted=true; inv.updatedAt=new Date().toISOString();
+    DB.serviceInvoices = DB.serviceInvoices.filter(x=>x.id!==id);
+    logAudit('Delete','ServiceInvoices',`Deleted ${inv.invoiceNo}`);
+    queueOfflineChange('ServiceInvoices',inv);
+    saveDB(); renderServiceInvoices();
+    showToast('Deleted','Invoice removed.','success');
+  });
+}
+
+function downloadSInvPDF(id){
+  const inv=(DB.serviceInvoices||[]).find(x=>x.id===id); if(!inv) return;
+  const {jsPDF} = window.jspdf;
+  const doc = new jsPDF();
+  const co = DB.settings;
+  doc.setFontSize(20); doc.setTextColor(224,138,30); doc.setFont(undefined,'bold');
+  doc.text(co.companyName||'SevaERP', 14, 18);
+  doc.setFontSize(9); doc.setTextColor(100); doc.setFont(undefined,'normal');
+  if(co.companyAddress) doc.text(co.companyAddress, 14, 25);
+  if(co.companyPhone)   doc.text('Ph: '+co.companyPhone, 14, 30);
+  if(co.companyGstin)   doc.text('GSTIN: '+co.companyGstin, 14, 35);
+  doc.setFontSize(16); doc.setTextColor(224,138,30); doc.setFont(undefined,'bold');
+  doc.text('SERVICE INVOICE', 140, 18);
+  doc.setFontSize(9); doc.setTextColor(50); doc.setFont(undefined,'normal');
+  doc.text('Invoice No: '+inv.invoiceNo, 140, 25);
+  doc.text('Date: '+fmtDate(inv.invoiceDate), 140, 30);
+  doc.text('Status: '+inv.status, 140, 35);
+  doc.setDrawColor(224,138,30); doc.line(14, 40, 196, 40);
+  doc.setFontSize(10); doc.setTextColor(50);
+  doc.text('Bill To:', 14, 48);
+  doc.setFont(undefined,'bold'); doc.text(inv.customerName, 14, 54); doc.setFont(undefined,'normal');
+  doc.autoTable({
+    startY: 62,
+    head: [['Description','Amount (₹)']],
+    body: [
+      [inv.serviceName||'Service Charge', inv.subtotal.toFixed(2)],
+      [`GST @ ${inv.gstPct}%`, inv.gstAmount.toFixed(2)],
+      ['Discount', '-'+inv.discount.toFixed(2)],
+      ['', ''],
+    ],
+    foot: [['TOTAL', inv.total.toFixed(2)],['Amount Paid',inv.paid.toFixed(2)],['Balance Due',inv.balance.toFixed(2)]],
+    theme:'grid',
+    headStyles:{fillColor:[224,138,30],fontSize:10},
+    footStyles:{fillColor:[245,245,245],fontStyle:'bold'},
+    bodyStyles:{fontSize:9},
+    styles:{cellPadding:3}
+  });
+  if(inv.notes){ doc.setFontSize(9); doc.setTextColor(100); doc.text('Notes: '+inv.notes, 14, doc.lastAutoTable.finalY+8); }
+  doc.save(inv.invoiceNo+'.pdf');
+  logAudit('Edit','ServiceInvoices','Downloaded PDF: '+inv.invoiceNo);
+  showToast('PDF Downloaded',inv.invoiceNo+'.pdf','success');
+}
+
+function printServiceInvoice(){
+  // Simple print using a new window
+  const id = document.getElementById('sInvId').value;
+  if(!id){ showToast('Save First','Please save the invoice before printing.','warning'); return; }
+  downloadSInvPDF(Number(id));
+}
+function downloadServiceInvoicePDF(){ downloadSInvPDF(Number(document.getElementById('sInvId').value)); }
+
+/* ====================================================================
+   ENTERPRISE: WRAP saveDB() TO AUTO-QUEUE CHANGES
+   We patch the existing saveDB to also ensure UUIDs on every record
+==================================================================== */
+const _origSaveDB = typeof saveDB === 'function' ? saveDB : null;
+// UUID patching runs on initial load via ensureUUIDs() call in DOMContentLoaded
+
 </script>
 </body>
 </html>
