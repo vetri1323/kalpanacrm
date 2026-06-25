@@ -441,14 +441,14 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
     <form id="loginForm">
       <div class="mb-3">
         <label class="form-label">Username</label>
-        <input type="text" class="form-control" id="loginUser" placeholder="username" autocomplete="username" required>
+        <input type="text" class="form-control" id="loginUser" placeholder="admin" autocomplete="username" required>
       </div>
       <div class="mb-3">
         <label class="form-label">Password</label>
         <input type="password" class="form-control" id="loginPass" placeholder="••••••••" autocomplete="current-password" required>
       </div>
       <button type="submit" class="btn btn-marigold w-100 mt-2 py-2">Sign In <i class="fa-solid fa-arrow-right ms-1"></i></button>
-      <p class="text-center mt-3 mb-0" style="font-size:11.5px;color:var(--text-3);">"Powered by Sahainfotech solutions."</p>
+      <p class="text-center mt-3 mb-0" style="font-size:11.5px;color:var(--text-3);">Default: <b>admin</b> / <b>admin123</b></p>
     </form>
   </div>
 </div>
@@ -497,6 +497,7 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
       <div class="nav-link-app" data-page="inventory"><i class="fa-solid fa-boxes-stacked nav-ic"></i> Inventory</div>
       <div class="nav-link-app" data-page="tasks"><i class="fa-solid fa-list-check nav-ic"></i> Tasks</div>
       <div class="nav-link-app" data-page="documents"><i class="fa-solid fa-folder-open nav-ic"></i> Documents</div>
+      <div class="nav-link-app" data-page="billreminders"><i class="fa-solid fa-file-invoice nav-ic"></i> Bill Reminders</div>
 
       <div class="nav-section-label">HR</div>
       <div class="nav-link-app" data-page="staff"><i class="fa-solid fa-id-card nav-ic"></i> Staff</div>
@@ -515,6 +516,7 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
       <div class="nav-link-app" data-page="machservice"><i class="fa-solid fa-screwdriver-wrench nav-ic"></i> Service History</div>
       <div class="nav-link-app" data-page="maintenance"><i class="fa-solid fa-calendar-day nav-ic"></i> Maintenance Schedule</div>
       <div class="nav-link-app" data-page="machreports"><i class="fa-solid fa-chart-line nav-ic"></i> MM Reports</div>
+      <div class="nav-link-app" data-page="printerrenewal"><i class="fa-solid fa-rotate nav-ic"></i> Printer Renewal</div>
 
       <div class="nav-section-label">System</div>
       <div class="nav-link-app" data-page="auditlog"><i class="fa-solid fa-clipboard-list nav-ic"></i> Audit Log</div>
@@ -1779,6 +1781,90 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
         </div>
       </section>
 
+      <!-- ============ BILL REMINDERS ============ -->
+      <section class="page-section" id="page-billreminders">
+        <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
+          <div><div class="section-title">Bill Reminders</div><div class="section-desc mb-0">Track recurring bills, due dates and payment status</div></div>
+          <button class="btn btn-marigold" onclick="openBillModal()"><i class="fa-solid fa-plus me-1"></i>Add Bill</button>
+        </div>
+        <!-- KPI Row -->
+        <div class="kpi-grid mb-3" id="billKpiGrid" style="grid-template-columns:repeat(5,1fr);"></div>
+        <div class="card-app">
+          <div class="card-app-body">
+            <div class="d-flex gap-2 flex-wrap mb-2">
+              <button class="btn btn-sm btn-outline-app active" onclick="setBillFilter('all',this)">All</button>
+              <button class="btn btn-sm btn-outline-app" style="color:var(--danger);" onclick="setBillFilter('overdue',this)">🔴 Overdue</button>
+              <button class="btn btn-sm btn-outline-app" style="color:var(--warning);" onclick="setBillFilter('pending',this)">🟠 Upcoming</button>
+              <button class="btn btn-sm btn-outline-app" style="color:var(--success);" onclick="setBillFilter('paid',this)">🟢 Paid</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setBillFilter('duetoday',this)">📅 Due Today</button>
+            </div>
+            <div class="filter-bar mb-2">
+              <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="form-control" id="billSearch" placeholder="Search bill name, provider..."></div>
+              <select class="form-select" id="billCatFilter" style="max-width:180px;"><option value="">All Categories</option>
+                <option>EB Bill</option><option>Water Tax</option><option>Property Tax</option><option>Internet</option>
+                <option>Mobile</option><option>Office Rent</option><option>Shop Rent</option><option>GST</option>
+                <option>Loan EMI</option><option>Insurance Premium</option><option>Other</option>
+              </select>
+              <div class="ms-auto d-flex gap-2">
+                <button class="btn btn-outline-app btn-sm" onclick="exportTableExcel('billTable','Bill_Reminders')"><i class="fa-solid fa-file-excel me-1"></i>Excel</button>
+                <button class="btn btn-outline-app btn-sm" onclick="exportTablePDF('billTable','Bill Reminders')"><i class="fa-solid fa-file-pdf me-1"></i>PDF</button>
+              </div>
+            </div>
+            <div class="table-responsive-app">
+              <table class="table-app mb-0" id="billTable">
+                <thead><tr><th>Bill ID</th><th>Category</th><th>Bill Name</th><th>Provider</th><th class="text-end">Amount</th><th>Due Date</th><th>Status</th><th>Paid Date</th><th class="text-end">Actions</th></tr></thead>
+                <tbody id="billBody"></tbody>
+              </table>
+            </div>
+            <div id="billEmpty" class="empty-state d-none"><i class="fa-solid fa-file-invoice"></i><h6>No bills added yet</h6><p>Add your first recurring bill to start tracking.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PRINTER RENEWAL ============ -->
+      <section class="page-section" id="page-printerrenewal">
+        <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
+          <div><div class="section-title">Printer Renewal Forecast</div><div class="section-desc mb-0">Track toner, drum and maintenance kit renewal based on daily reading averages</div></div>
+          <button class="btn btn-marigold" onclick="openRenewalModal()"><i class="fa-solid fa-plus me-1"></i>Add Renewal Record</button>
+        </div>
+        <div class="kpi-grid mb-3" id="renewalKpiGrid" style="grid-template-columns:repeat(5,1fr);"></div>
+        <div class="card-app mb-3">
+          <div class="card-app-head">
+            <h6><i class="fa-solid fa-rotate me-2"></i>Renewal Forecast</h6>
+            <div class="ms-auto d-flex gap-2">
+              <select class="form-select form-select-sm" id="renewalTypeFilter" onchange="renderPrinterRenewal()" style="max-width:160px;">
+                <option value="">All Types</option><option>Toner</option><option>Drum</option>
+                <option>Developer</option><option>Maintenance Kit</option><option>Spare Parts</option>
+              </select>
+              <select class="form-select form-select-sm" id="renewalStatusFilter" onchange="renderPrinterRenewal()" style="max-width:150px;">
+                <option value="">All Status</option><option>OK</option><option>Near Renewal</option><option>Renewal Required</option>
+              </select>
+              <button class="btn btn-outline-app btn-sm" onclick="exportTableExcel('renewalTable','Printer_Renewals')"><i class="fa-solid fa-file-excel me-1"></i>Excel</button>
+              <button class="btn btn-outline-app btn-sm" onclick="exportTablePDF('renewalTable','Printer Renewal Report')"><i class="fa-solid fa-file-pdf me-1"></i>PDF</button>
+            </div>
+          </div>
+          <div class="card-app-body">
+            <div class="filter-bar mb-2">
+              <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="form-control" id="renewalSearch" placeholder="Search printer, customer..." oninput="renderPrinterRenewal()"></div>
+              <select class="form-select" id="renewalCustFilter" style="max-width:200px;" onchange="renderPrinterRenewal()"><option value="">All Customers</option></select>
+            </div>
+            <div class="table-responsive-app">
+              <table class="table-app mb-0" id="renewalTable">
+                <thead><tr>
+                  <th>Printer</th><th>Customer</th><th>Renewal Type</th>
+                  <th class="text-end">Current Rdg</th><th class="text-end">Renewal Limit</th>
+                  <th class="text-end">Remaining</th><th class="text-end">Daily Avg</th>
+                  <th class="text-end">Est. Days</th><th>Est. Renewal Date</th>
+                  <th>Status</th><th class="text-end">Actions</th>
+                </tr></thead>
+                <tbody id="renewalBody"></tbody>
+              </table>
+            </div>
+            <div id="renewalEmpty" class="empty-state d-none"><i class="fa-solid fa-rotate"></i><h6>No renewal records yet</h6></div>
+          </div>
+        </div>
+      </section>
+
       <!-- ============ AUDIT LOG ============ -->
       <section class="page-section" id="page-auditlog">
         <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
@@ -1902,6 +1988,18 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
                 </div>
 
                 <div id="sheetSyncStatusBox" style="font-size:12px;color:var(--text-2);"></div>
+
+                <!-- Session Timeout Setting -->
+                <div class="mb-3 mt-3">
+                  <label class="form-label fw-bold"><i class="fa-solid fa-clock me-1"></i>Session Timeout</label>
+                  <select class="form-select" id="sessionTimeoutSel" onchange="saveSessionTimeout(this.value)" style="max-width:200px;">
+                    <option value="0">Disabled</option>
+                    <option value="900">15 Minutes</option>
+                    <option value="1800">30 Minutes</option>
+                    <option value="3600">1 Hour</option>
+                  </select>
+                  <small style="color:var(--text-3);font-size:11px;">Auto-logout after inactivity. Shows 60-second warning before expiry.</small>
+                </div>
 
                 <hr style="border-color:var(--border-soft);">
                 <p style="font-size:12px;color:var(--text-3);margin-bottom:8px;"><i class="fa-solid fa-circle-info me-1"></i>Photos, scanned documents and your logo stay stored on this device only (they don't fit in a Sheet cell) — every other module syncs fully: Customers, Services, Reminders, Leads, Income, Expense, Cashbook, Bank, Loans, Chits, Invoices, Inventory, Tasks, Staff, Attendance, Payroll, Machines, Printers and more.</p>
@@ -2402,7 +2500,138 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
 </div>
 
 <!-- CHIT INSTALLMENT MODAL -->
-<div class="modal fade" id="chitPaymentModal" tabindex="-1">
+<div class="modal fade" id="chitPaymentModa
+
+<!-- BILL REMINDER MODAL -->
+<div class="modal fade" id="billModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="billModalTitle">Add Bill Reminder</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="billForm">
+          <input type="hidden" id="billId">
+          <div class="row g-3">
+            <div class="col-md-4"><label class="form-label">Bill ID</label><input type="text" class="form-control mono" id="billAutoId" readonly placeholder="Auto-generated"></div>
+            <div class="col-md-4"><label class="form-label">Category <span class="required-star">*</span></label>
+              <select class="form-select" id="billCategory" required><option value="">-- Select --</option>
+                <option>EB Bill</option><option>Water Tax</option><option>Property Tax</option><option>Internet</option>
+                <option>Mobile</option><option>Office Rent</option><option>Shop Rent</option><option>GST</option>
+                <option>Loan EMI</option><option>Insurance Premium</option><option>Other</option>
+              </select>
+            </div>
+            <div class="col-md-4"><label class="form-label">Status</label>
+              <select class="form-select" id="billStatus"><option>Pending</option><option>Paid</option><option>Overdue</option></select>
+            </div>
+            <div class="col-md-6"><label class="form-label">Bill Name <span class="required-star">*</span></label><input type="text" class="form-control" id="billName" placeholder="e.g. TNEB Monthly Bill" required></div>
+            <div class="col-md-6"><label class="form-label">Provider Name</label><input type="text" class="form-control" id="billProvider" placeholder="e.g. TNEB, Jio, BSNL"></div>
+            <div class="col-md-6"><label class="form-label">Account Number</label><input type="text" class="form-control" id="billAccNo" placeholder="Account / Consumer No."></div>
+            <div class="col-md-6"><label class="form-label">Amount (₹) <span class="required-star">*</span></label><input type="number" step="0.01" min="0" class="form-control" id="billAmount" required></div>
+            <div class="col-md-4"><label class="form-label">Due Date <span class="required-star">*</span></label><input type="date" class="form-control" id="billDueDate" required></div>
+            <div class="col-md-4"><label class="form-label">Remind Before (days)</label>
+              <select class="form-select" id="billRemindDays">
+                <option value="1">1 Day</option><option value="3">3 Days</option>
+                <option value="7" selected>7 Days</option><option value="15">15 Days</option>
+              </select>
+            </div>
+            <div class="col-md-4"><label class="form-label">Payment Date</label><input type="date" class="form-control" id="billPaidDate"></div>
+            <div class="col-12"><label class="form-label">Notes</label><textarea class="form-control" id="billNotes" rows="2" placeholder="Optional remarks"></textarea></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-app" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-marigold" onclick="saveBill()"><i class="fa-solid fa-floppy-disk me-1"></i>Save Bill</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRINTER RENEWAL MODAL -->
+<div class="modal fade" id="renewalModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="renewalModalTitle">Add Renewal Record</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="renewalForm">
+          <input type="hidden" id="renewalId">
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label">Printer <span class="required-star">*</span></label>
+              <select class="form-select" id="renewalPrinter" onchange="onRenewalPrinterChange()" required><option value="">-- Select Printer --</option></select>
+            </div>
+            <div class="col-md-6"><label class="form-label">Customer</label><input type="text" class="form-control" id="renewalCustomer" readonly placeholder="Auto from printer"></div>
+            <div class="col-md-6"><label class="form-label">Renewal Type <span class="required-star">*</span></label>
+              <select class="form-select" id="renewalType" required><option value="">-- Select --</option>
+                <option>Toner</option><option>Drum</option><option>Developer</option><option>Maintenance Kit</option><option>Spare Parts</option>
+              </select>
+            </div>
+            <div class="col-md-6"><label class="form-label">Renewal Limit (copies) <span class="required-star">*</span></label><input type="number" min="0" class="form-control" id="renewalLimit" oninput="calcRenewal()" required></div>
+            <div class="col-md-4"><label class="form-label">Current Reading</label><input type="number" min="0" class="form-control" id="renewalCurrentRdg" oninput="calcRenewal()"></div>
+            <div class="col-md-4"><label class="form-label">Last Service Reading</label><input type="number" min="0" class="form-control" id="renewalLastSvcRdg"></div>
+            <div class="col-md-4"><label class="form-label">Daily Avg Reading</label><input type="number" min="0" step="0.1" class="form-control" id="renewalDailyAvg" oninput="calcRenewal()"></div>
+            <div class="col-md-4"><label class="form-label">Remaining (copies)</label><input type="text" class="form-control mono" id="renewalRemaining" readonly></div>
+            <div class="col-md-4"><label class="form-label">Est. Days Balance</label><input type="text" class="form-control mono" id="renewalEstDays" readonly></div>
+            <div class="col-md-4"><label class="form-label">Next Renewal At</label><input type="text" class="form-control mono" id="renewalNextAt" readonly></div>
+            <div class="col-12"><label class="form-label">Notes</label><textarea class="form-control" id="renewalNotes" rows="2"></textarea></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-app" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-marigold" onclick="saveRenewal()"><i class="fa-solid fa-floppy-disk me-1"></i>Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SERVICE INVOICE MODAL -->
+<div class="modal fade" id="serviceInvoiceModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="sInvModalTitle">New Service Invoice</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="serviceInvoiceForm">
+          <input type="hidden" id="sInvId">
+          <input type="hidden" id="sInvUuid">
+          <div class="row g-3 mb-3">
+            <div class="col-md-4"><label class="form-label">Invoice No.</label><input type="text" class="form-control mono" id="sInvNo" readonly placeholder="Auto-generated"></div>
+            <div class="col-md-4"><label class="form-label">Invoice Date *</label><input type="date" class="form-control" id="sInvDate" required></div>
+            <div class="col-md-4"><label class="form-label">Status</label><select class="form-select" id="sInvStatus"><option>Unpaid</option><option>Partial</option><option>Paid</option></select></div>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6"><label class="form-label">Customer *</label><select class="form-select" id="sInvCustomer" required><option value="">-- Select Customer --</option></select></div>
+            <div class="col-md-6"><label class="form-label">Service</label><input type="text" class="form-control" id="sInvServiceName" placeholder="Service / description"></div>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-3"><label class="form-label">Subtotal (₹)</label><input type="number" class="form-control" id="sInvSubtotal" min="0" value="0" oninput="calcSInvTotals()"></div>
+            <div class="col-md-3"><label class="form-label">GST %</label><select class="form-select" id="sInvGstPct" onchange="calcSInvTotals()"><option value="0">0%</option><option value="5">5%</option><option value="12">12%</option><option value="18">18%</option><option value="28">28%</option></select></div>
+            <div class="col-md-3"><label class="form-label">Discount (₹)</label><input type="number" class="form-control" id="sInvDiscount" min="0" value="0" oninput="calcSInvTotals()"></div>
+            <div class="col-md-3"><label class="form-label">Total (₹)</label><input type="text" class="form-control mono fw-bold" id="sInvTotal" readonly></div>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-4"><label class="form-label">Amount Paid (₹)</label><input type="number" class="form-control" id="sInvPaid" min="0" value="0" oninput="calcSInvTotals()"></div>
+            <div class="col-md-4"><label class="form-label">Balance (₹)</label><input type="text" class="form-control mono" id="sInvBalance" readonly></div>
+            <div class="col-md-4"><label class="form-label">Payment Mode</label><select class="form-select" id="sInvPayMode"><option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option></select></div>
+          </div>
+          <div class="mb-3"><label class="form-label">Notes</label><textarea class="form-control" id="sInvNotes" rows="2"></textarea></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-app" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-outline-app" onclick="downloadSInvPDF(Number(document.getElementById('sInvId').value))"><i class="fa-solid fa-file-pdf me-1"></i>PDF</button>
+        <button type="button" class="btn btn-marigold" onclick="saveServiceInvoice()"><i class="fa-solid fa-check me-1"></i>Save Invoice</button>
+      </div>
+    </div>
+  </div>
+</div>l" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header"><h5 class="modal-title" id="chitPayModalTitle">Record Installment</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
@@ -3067,9 +3296,14 @@ function jsonOut(obj) {
 `;
 
 const DEFAULT_DB = {
-  meta: { nextCustId: 1, nextSvcId: 1, nextLeadId: 1, nextRemId: 1, nextIncId:1, nextExpId:1, nextLoanId:1, nextChitId:1,
-          nextInvId:1, nextInvtId:1, nextTaskId:1, nextDocId:1, nextStaffId:1, nextPayrollId:1, nextTemplateId:6, nextBankTxnId:1, nextAuditId:1, invoiceCounter:1, nextCatalogId:13,
-          nextMachineId:1, nextPrinterId:1, nextReadingId:1, nextMachineServiceId:1, nextMaintenanceId:1, nextPrinterServiceId:1 },
+  meta: { nextCustId:1, nextSvcId:1, nextLeadId:1, nextRemId:1, nextIncId:1, nextExpId:1,
+          nextLoanId:1, nextChitId:1, nextChitPayId:1, nextEmiId:1,
+          nextInvId:1, nextInvtId:1, nextTaskId:1, nextDocId:1, nextStaffId:1,
+          nextPayrollId:1, nextTemplateId:6, nextBankTxnId:1, nextCbManualId:1,
+          nextAuditId:1, invoiceCounter:1, nextCatalogId:13,
+          nextMachineId:1, nextPrinterId:1, nextReadingId:1,
+          nextMachineServiceId:1, nextMaintenanceId:1, nextPrinterServiceId:1,
+          nextSInvId:1, sInvoiceCounter:1, nextBillId:1, nextRenewalId:1 },
   settings: {
     companyName: 'SevaERP Service Centre',
     companyAddress: '',
@@ -3126,7 +3360,16 @@ const DEFAULT_DB = {
     {id:3, name:'Payment Reminder', message:'Dear {name}, this is a gentle reminder regarding your pending payment for our service. Kindly clear it soon. Thank you!'},
     {id:4, name:'Birthday Wish', message:'Dear {name}, wishing you a very Happy Birthday! May your day be filled with joy, good health and happiness. 🎉🎂'}
   ],
-  auditLog: []
+  auditLog: [],
+  serviceInvoices: [],
+  invoices: [],
+  bankTxns: [],
+  cashbookManual: [],
+  emiPayments: [],
+  chitPayments: [],
+  billReminders: [],
+  printerRenewals: [],
+  notifications: []
 };
 
 let DB = null;
@@ -3164,6 +3407,7 @@ const DB_TO_SHEET = {
   tasks:'Tasks', machines:'Machines', printerReadings:'PrinterReadings',
   machineServices:'MachineService', maintenanceSchedule:'Maintenance',
   auditLog:'AuditLogs', notifications:'Notifications', serviceInvoices:'ServiceInvoices',
+  billReminders:'Bill_Reminders', printerRenewals:'Printer_Renewals',
 };
 
 // Snapshot of last-saved state per collection (uuid→updatedAt)
@@ -3286,6 +3530,32 @@ function generateUUID(){
 }
 
 // ── Ensure every DB record has a UUID ─────────────────────────────
+function normaliseDateFields(){
+  // Strip time components from all date fields in the entire DB (runs after loadDB)
+  if(!DB) return;
+  const allCols = ['customers','services','invoices','serviceInvoices','income','expense',
+    'loans','emiPayments','chits','chitPayments','inventory','staff','attendance','payroll',
+    'leads','reminders','documents','tasks','machines','printers','printerReadings',
+    'machineServices','maintenanceSchedule','bankTxns','cashbookManual',
+    'billReminders','printerRenewals','notifications','auditLog'];
+  const DATE_FIELDS_RE = /Date$|At$|On$|Start$|End$|dob$/i;
+  const KNOWN_DATE_FIELDS = ['date','dueDate','paidDate','invoiceDate','appliedDate',
+    'reminderDate','joinDate','dob','readingDate','nextDueDate','serviceDate',
+    'nextServiceDate','issueDate','expiryDate','followup','loanStartDate'];
+  allCols.forEach(col=>{
+    if(!Array.isArray(DB[col])) return;
+    DB[col].forEach(rec=>{
+      Object.keys(rec).forEach(k=>{
+        const v=rec[k];
+        if(!v||typeof v!=='string') return;
+        if((KNOWN_DATE_FIELDS.includes(k)||DATE_FIELDS_RE.test(k)) && v.length>10 && (v.includes('T')||v.includes(' '))){
+          rec[k]=v.slice(0,10);
+        }
+      });
+    });
+  });
+}
+
 function ensureUUIDs(){
   if(!DB) return; // safety guard
   const collections = ['customers','services','invoices','income','expense','loans','chits','inventory',
@@ -3473,12 +3743,36 @@ async function pullLatest(showFeedback){
 
 // ── Apply cloud delta to local DB ─────────────────────────────────
 // Coerce string values from Google Sheets back to correct JS types
+// Date fields coming as "2026-06-24T18:30:00.000Z" are stripped to "2026-06-24"
+const DATE_FIELD_NAMES = [
+  'date','dueDate','paidDate','invoiceDate','startDate','endDate','appliedDate',
+  'reminderDate','joinDate','dob','readingDate','nextDueDate','serviceDate',
+  'nextServiceDate','warrantyStart','warrantyEnd','purchaseDate','issueDate',
+  'expiryDate','chitPayDate','emiDate','chitStartDate','loanStartDate',
+  'followup','createdAt','updatedAt','billDueDate','billPaidDate',
+];
+
 function coerceRecord(rec, numericFields){
   if(!rec) return rec;
-  numericFields.forEach(f=>{ if(rec[f]!==undefined && rec[f]!=='') rec[f]=Number(rec[f])||0; });
+  // Coerce numerics
+  numericFields.forEach(f=>{
+    if(rec[f]!==undefined && rec[f]!=='') rec[f]=Number(rec[f])||0;
+  });
+  // Coerce boolean
   if(rec._deleted==='true')  rec._deleted=true;
   if(rec._deleted==='false') rec._deleted=false;
   if(rec._deleted==='')      rec._deleted=false;
+  // Normalise date fields — strip time component
+  Object.keys(rec).forEach(k=>{
+    const v = rec[k];
+    if(!v || typeof v !== 'string') return;
+    // Any field name ending in Date/At/On/Start/End, or in our list
+    const isDateField = DATE_FIELD_NAMES.includes(k) ||
+      /Date$|At$|On$|Start$|End$|dob$/i.test(k);
+    if(isDateField && v.length > 10 && (v.includes('T') || v.includes(' '))){
+      rec[k] = v.slice(0, 10);
+    }
+  });
   return rec;
 }
 
@@ -3540,6 +3834,7 @@ function applyCloudDelta(remoteData){
 
     incoming.forEach(rawRemote=>{
       // Coerce types (Google Sheets returns everything as string)
+      // Also normalises date fields like "2026-06-24T18:30:00.000Z" → "2026-06-24"
       const remote = coerceRecord(Object.assign({}, rawRemote), numFields);
 
       // Skip blank rows (Apps Script sometimes returns empty rows)
@@ -3589,6 +3884,8 @@ function applyCloudDelta(remoteData){
 
   // Fix meta counters so new records don't get duplicate IDs
   fixMetaCounters();
+  // Normalise any date fields that came as ISO timestamps
+  normaliseDateFields();
 
   saveDB();
   populateAllDropdowns();
@@ -3898,16 +4195,39 @@ function fmtMoney(n){
   const cur = (DB && DB.settings && DB.settings.currency) ? DB.settings.currency : '₹';
   return cur + n.toLocaleString('en-IN', {maximumFractionDigits:2, minimumFractionDigits: (n%1!==0)?2:0});
 }
+// Extract YYYY-MM-DD from any date string (handles ISO timestamps, plain dates, etc.)
+function parseDateStr(d){
+  if(!d) return '';
+  const s = String(d).trim();
+  // Already plain date: 2026-06-24
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  // ISO timestamp: 2026-06-24T18:30:00.000Z or 2026-06-24T00:00:00
+  if(s.includes('T')) return s.slice(0,10);
+  // Date with space: 2026-06-24 00:00:00
+  if(s.includes(' ') && s.length>10) return s.slice(0,10);
+  // Google Sheets serial or other — try parsing
+  const dt = new Date(s);
+  if(!isNaN(dt)){
+    const y=dt.getFullYear(), m=String(dt.getMonth()+1).padStart(2,'0'), dd=String(dt.getDate()).padStart(2,'0');
+    return y+'-'+m+'-'+dd;
+  }
+  return s;
+}
+
 function fmtDate(d){
   if(!d) return '—';
-  const dt = new Date(d+'T00:00:00');
-  if(isNaN(dt)) return d;
+  const clean = parseDateStr(d);
+  if(!clean) return '—';
+  const dt = new Date(clean+'T00:00:00');
+  if(isNaN(dt)) return String(d);
   return dt.toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
 }
 function fmtDateTime(ts){
   if(!ts) return '—';
-  const dt = new Date(ts);
-  if(isNaN(dt)) return '—';
+  const clean = parseDateStr(ts);
+  if(!clean) return '—';
+  const dt = new Date(clean+'T00:00:00');
+  if(isNaN(dt)) return String(ts);
   return dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
 }
 function todayStr(){
@@ -3920,8 +4240,12 @@ function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 function daysFromToday(dateStr){
+  if(!dateStr) return null;
   const d1 = new Date(todayStr()+'T00:00:00');
-  const d2 = new Date(dateStr+'T00:00:00');
+  const clean = parseDateStr(dateStr);
+  if(!clean) return null;
+  const d2 = new Date(clean+'T00:00:00');
+  if(isNaN(d2)) return null;
   return Math.round((d2-d1)/(1000*60*60*24));
 }
 
@@ -3976,11 +4300,23 @@ function doLogin(username, password){
 }
 
 function doLogout(){
-  logAudit('Logout','Auth', `User logged out`);
+  // Show confirmation modal instead of immediate logout
+  new bootstrap.Modal(document.getElementById('logoutConfirmModal')).show();
+}
+function confirmLogout(){
+  stopSessionTimer();
+  logAudit('Logout','Auth','User logged out');
   clearSession();
-  document.getElementById('appShell').classList.add('d-none');
-  document.getElementById('loginScreen').classList.remove('d-none');
-  document.getElementById('loginPass').value='';
+  // Hide all modals first
+  document.querySelectorAll('.modal.show').forEach(m=>{
+    const inst = bootstrap.Modal.getInstance(m);
+    if(inst) inst.hide();
+  });
+  setTimeout(()=>{
+    document.getElementById('appShell').classList.add('d-none');
+    document.getElementById('loginScreen').classList.remove('d-none');
+    document.getElementById('loginPass').value='';
+  }, 300);
 }
 
 ensureDefaultLogin();
@@ -4019,55 +4355,68 @@ const PAGE_TITLES = {
 };
 
 function navigateTo(page){
-  document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
-  const target = document.getElementById('page-'+page);
-  if(target) target.classList.add('active');
-  document.querySelectorAll('.nav-link-app').forEach(n=>n.classList.toggle('active', n.dataset.page===page));
-  const meta = PAGE_TITLES[page] || [page,''];
-  document.getElementById('topbarTitle').textContent = meta[0];
-  document.getElementById('topbarSub').textContent = meta[1];
-  // close mobile sidebar
-  document.getElementById('sidebar').classList.remove('show');
-  document.getElementById('sidebarBackdrop').classList.remove('show');
-  // refresh relevant module
-  renderPage(page);
-  window.scrollTo(0,0);
+  try{
+    document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
+    const target = document.getElementById('page-'+page);
+    if(target) target.classList.add('active');
+    document.querySelectorAll('.nav-link-app').forEach(n=>n.classList.toggle('active', n.dataset.page===page));
+    const meta = PAGE_TITLES[page] || [page,''];
+    const titleEl = document.getElementById('topbarTitle');
+    const subEl   = document.getElementById('topbarSub');
+    if(titleEl) titleEl.textContent = meta[0];
+    if(subEl)   subEl.textContent   = meta[1];
+    // close mobile sidebar
+    document.getElementById('sidebar')?.classList.remove('show');
+    document.getElementById('sidebarBackdrop')?.classList.remove('show');
+    // refresh relevant module — wrapped so one broken module doesn't block others
+    try{ renderPage(page); }catch(e){ console.error('renderPage('+page+') error:', e); }
+    window.scrollTo(0,0);
+  }catch(err){
+    console.error('navigateTo error:', err);
+  }
 }
 
 function renderPage(page){
-  switch(page){
-    case 'dashboard': renderDashboard(); break;
-    case 'customers': renderCustomers(); break;
-    case 'services': renderServices(); break;
-    case 'reminders': renderReminders(); break;
-    case 'leads': renderLeads(); break;
-    case 'income': renderIncome(); break;
-    case 'expense': renderExpense(); break;
-    case 'cashbook': renderCashbook(); break;
-    case 'bank': renderBank(); break;
-    case 'loans': renderLoans(); break;
-    case 'chits': renderChits(); break;
-    case 'invoice': renderInvoices(); break;
-    case 'inventory': renderInventory(); break;
-    case 'tasks': renderTasks(); break;
-    case 'documents': renderDocuments(); break;
-    case 'staff': renderStaff(); break;
-    case 'attendance': renderAttendancePage(); break;
-    case 'payroll': renderPayroll(); break;
-    case 'marketing': renderMarketing(); break;
-    case 'machdash': renderMachineDashboard(); break;
-    case 'machines': renderMachines(); break;
-    case 'warranty': renderWarrantyTracker(); break;
-    case 'printerreading': renderPrinterReading(); break;
-    case 'machservice': renderMachineServiceHistory(); break;
-    case 'maintenance': renderMaintenanceSchedule(); break;
-    case 'machreports': /* generated on demand */ break;
-    case 'reports': /* generated on demand */ break;
-    case 'auditlog': renderAuditLog(); break;
-    case 'serviceinvoices': renderServiceInvoices(); break;
-    case 'settings': renderSettings(); break;
+  if(!DB) return; // safety guard — DB not yet loaded
+  try{
+    switch(page){
+      case 'dashboard':      renderDashboard(); break;
+      case 'customers':      renderCustomers(); break;
+      case 'services':       renderServices(); break;
+      case 'reminders':      renderReminders(); break;
+      case 'leads':          renderLeads(); break;
+      case 'income':         renderIncome(); break;
+      case 'expense':        renderExpense(); break;
+      case 'cashbook':       renderCashbook(); break;
+      case 'bank':           renderBank(); break;
+      case 'loans':          renderLoans(); break;
+      case 'chits':          renderChits(); break;
+      case 'invoice':        renderInvoices(); break;
+      case 'inventory':      renderInventory(); break;
+      case 'tasks':          renderTasks(); break;
+      case 'documents':      renderDocuments(); break;
+      case 'staff':          renderStaff(); break;
+      case 'attendance':     renderAttendancePage(); break;
+      case 'payroll':        renderPayroll(); break;
+      case 'marketing':      renderMarketing(); break;
+      case 'machdash':       renderMachineDashboard(); break;
+      case 'machines':       renderMachines(); break;
+      case 'warranty':       renderWarrantyTracker(); break;
+      case 'printerreading': renderPrinterReading(); break;
+      case 'machservice':    renderMachineServiceHistory(); break;
+      case 'maintenance':    renderMaintenanceSchedule(); break;
+      case 'machreports':    /* generated on demand */ break;
+      case 'reports':        /* generated on demand */ break;
+      case 'auditlog':       renderAuditLog(); break;
+      case 'serviceinvoices':renderServiceInvoices(); break;
+      case 'billreminders':  renderBillReminders(); break;
+      case 'printerrenewal': renderPrinterRenewal(); break;
+      case 'settings':       renderSettings(); break;
+    }
+    try{ renderNotifications(); }catch(e){}
+  }catch(e){
+    console.error('renderPage('+page+') error:', e);
   }
-  renderNotifications();
 }
 
 document.addEventListener('click', function(e){
@@ -4122,37 +4471,94 @@ document.getElementById('globalSearch').addEventListener('keyup', function(e){
 /* ===================== LOGIN FORM ===================== */
 document.getElementById('loginForm').addEventListener('submit', function(e){
   e.preventDefault();
-  const u = document.getElementById('loginUser').value;
-  const p = document.getElementById('loginPass').value;
-  if(doLogin(u,p)){
-    bootApp();
-  }else{
-    showToast('Login Failed','Incorrect username or password.','danger');
+  const u = (document.getElementById('loginUser')||{}).value||'';
+  const p = (document.getElementById('loginPass')||{}).value||'';
+  if(!u||!p){ showToast('Required','Please enter username and password.','warning'); return; }
+  try{
+    if(doLogin(u,p)){
+      bootApp();
+    }else{
+      showToast('Login Failed','Incorrect username or password.','danger');
+      document.getElementById('loginPass').value='';
+    }
+  }catch(err){
+    console.error('Login error:', err);
+    showToast('Error','Login failed. Check console for details.','danger');
   }
 });
 
 /* ===================== APP BOOT ===================== */
 function bootApp(){
-  document.getElementById('loginScreen').classList.add('d-none');
-  document.getElementById('appShell').classList.remove('d-none');
-  applyTheme(DB.settings.theme || 'light');
-  document.getElementById('sbCompanyName').textContent = DB.settings.companyName || 'SevaERP';
-  const sess = getSession();
-  if(sess){
-    document.getElementById('profileName').textContent = sess.username.charAt(0).toUpperCase()+sess.username.slice(1);
-    document.getElementById('avatarChip').textContent = sess.username.charAt(0).toUpperCase();
+  try{
+    // Ensure all required DB arrays exist before rendering
+    _ensureDBCollections();
+
+    document.getElementById('loginScreen').classList.add('d-none');
+    document.getElementById('appShell').classList.remove('d-none');
+
+    try{ applyTheme(DB.settings.theme || 'light'); }catch(e){}
+
+    try{ document.getElementById('sbCompanyName').textContent = DB.settings.companyName || 'SevaERP'; }catch(e){}
+
+    try{
+      const sess = getSession();
+      if(sess){
+        document.getElementById('profileName').textContent = sess.username.charAt(0).toUpperCase()+sess.username.slice(1);
+        document.getElementById('avatarChip').textContent  = sess.username.charAt(0).toUpperCase();
+      }
+    }catch(e){}
+
+    try{ populateAllDropdowns(); }catch(e){ console.warn('populateAllDropdowns error:',e); }
+
+    try{ navigateTo('dashboard'); }catch(e){ console.warn('navigateTo dashboard error:',e); }
+
+    try{ setSyncStatus(syncCfg.url ? 'idle' : 'idle'); }catch(e){}
+    try{ renderSettingsSyncStatus(); }catch(e){}
+
+    if(syncCfg.url && navigator.onLine){
+      setSyncStatus('syncing');
+      setTimeout(()=>{
+        pullLatest(false).then(()=>{
+          try{ populateAllDropdowns(); }catch(e){}
+          try{ renderPage(getCurrentPage()); }catch(e){}
+        }).catch(e=>{ setSyncStatus('error'); });
+      }, 800);
+    }
+
+    setTimeout(()=>{ try{ resetSessionTimer(); }catch(e){} }, 1000);
+    setTimeout(()=>{ try{ checkBillDueAlerts(); }catch(e){} }, 4000);
+
+  }catch(err){
+    console.error('bootApp error:', err);
+    // Show the app anyway even if something crashed
+    document.getElementById('loginScreen').classList.add('d-none');
+    document.getElementById('appShell').classList.remove('d-none');
+    try{ navigateTo('dashboard'); }catch(e){}
   }
-  populateAllDropdowns();
-  navigateTo('dashboard');
-  setSyncStatus(syncCfg.url ? 'idle' : 'idle');
-  renderSettingsSyncStatus();
-  if(syncCfg.url && navigator.onLine){
-    setSyncStatus('syncing');
-    // Small delay so dashboard renders first, then pull
-    setTimeout(()=>{
-      pullLatest(false).then(()=>{ populateAllDropdowns(); renderPage(getCurrentPage()); });
-    }, 500);
-  }
+}
+
+// Ensure all DB collections exist — called before any render
+function _ensureDBCollections(){
+  if(!DB) return;
+  const arrays = ['customers','services','invoices','serviceInvoices','income','expense',
+    'cashbookManual','bankTxns','loans','emiPayments','chits','chitPayments',
+    'inventory','staff','attendance','payroll','leads','reminders','documents',
+    'tasks','machines','printers','printerReadings','printerServices',
+    'machineServices','maintenanceSchedule','billReminders','printerRenewals',
+    'notifications','auditLog'];
+  arrays.forEach(k=>{ if(!Array.isArray(DB[k])) DB[k]=[]; });
+  if(!DB.meta)     DB.meta={};
+  if(!DB.settings) DB.settings={};
+  if(!DB.cashbook) DB.cashbook={openingBalance:0};
+  if(!DB.bank)     DB.bank={openingBalance:0};
+  // Counter defaults
+  const counters={nextCustId:1,nextSvcId:1,nextIncId:1,nextExpId:1,nextLoanId:1,
+    nextEmiId:1,nextChitId:1,nextChitPayId:1,nextInvId:1,nextInvtId:1,
+    nextStaffId:1,nextLeadId:1,nextRemId:1,nextDocId:1,nextTaskId:1,
+    nextMachineId:1,nextReadingId:1,nextMachineServiceId:1,nextMaintenanceId:1,
+    nextBankTxnId:1,nextCbManualId:1,nextSInvId:1,sInvoiceCounter:1,
+    nextBillId:1,nextRenewalId:1};
+  Object.entries(counters).forEach(([k,v])=>{ if(!DB.meta[k]) DB.meta[k]=v; });
 }
 
 function getCurrentPage(){
@@ -4197,44 +4603,31 @@ function populateAllDropdowns(){
 }
 
 window.addEventListener('DOMContentLoaded', function(){
-  loadDB();
-  loadSyncCfg();
-  populateAppsScriptCodeBox();
-  // ── Enterprise v2 init (runs AFTER loadDB so DB is not null) ────
-  // Safely init DB collections that may be missing from old localStorage data
-  if(DB){
-    if(!Array.isArray(DB.notifications))    DB.notifications    = [];
-    if(!Array.isArray(DB.serviceInvoices))  DB.serviceInvoices  = [];
-    if(!Array.isArray(DB.bankTxns))         DB.bankTxns         = [];
-    if(!Array.isArray(DB.cashbookManual))   DB.cashbookManual   = [];
-    if(!Array.isArray(DB.chitPayments))     DB.chitPayments     = [];
-    if(!Array.isArray(DB.emiPayments))      DB.emiPayments      = [];
-    if(!DB.meta)                            DB.meta             = {};
-    if(!DB.meta.nextSInvId)                 DB.meta.nextSInvId      = 1;
-    if(!DB.meta.sInvoiceCounter)            DB.meta.sInvoiceCounter = 1;
-    if(!DB.meta.nextBankTxnId)              DB.meta.nextBankTxnId   = 1;
-    if(!DB.meta.nextCbManualId)             DB.meta.nextCbManualId  = 1;
-    if(!DB.meta.nextEmiId)                  DB.meta.nextEmiId       = 1;
-    if(!DB.meta.nextChitId)                 DB.meta.nextChitId      = 1;
-    if(!DB.meta.nextChitPayId)              DB.meta.nextChitPayId   = 1;
-    if(!DB.bank)                            DB.bank                 = {openingBalance:0};
-    if(!DB.cashbook)                        DB.cashbook             = {openingBalance:0};
+  try{ loadDB(); }catch(e){ console.error('loadDB error:', e); }
+  try{ loadSyncCfg(); }catch(e){}
+  // Ensure all collections exist immediately after load
+  try{ _ensureDBCollections(); }catch(e){}
+  if(DB && DB.settings && !DB.settings.sessionTimeout) DB.settings.sessionTimeout=0;
+  try{ populateAppsScriptCodeBox(); }catch(e){}
+  try{ if(typeof _buildSnapshot==='function') _dbSnapshot = _buildSnapshot(); }catch(e){}
+  try{ normaliseDateFields(); }catch(e){}
+  try{ ensureUUIDs(); }catch(e){}
+  try{ loadOfflineQueue(); }catch(e){}
+  try{ updateOfflineBanner(); }catch(e){}
+  if(syncCfg.url && syncCfg.autoSync && navigator.onLine){
+    try{ startAutoSync(); }catch(e){}
+    setTimeout(()=>{ try{ doFullSync(false); }catch(e){} }, 2000);
   }
-  // Build initial snapshot so saveDB diffs work correctly from first save
-  if(typeof _buildSnapshot==='function') _dbSnapshot = _buildSnapshot();
-  ensureUUIDs();
-  loadOfflineQueue();
-  updateOfflineBanner();
-  if(syncCfg.url && syncCfg.autoSync && navigator.onLine){ startAutoSync(); setTimeout(()=>doFullSync(false), 2000); }
-  setTimeout(runAllAlertCheckers, 3000); // check alerts after 3s
-  setInterval(runAllAlertCheckers, 3600000); // check every hour
-  // ────────────────────────────────────────────────────────────────
-  // set today's defaults on date inputs
-  ['svcAppliedDate','incDate','expDate','bankTxnDate','emiDate','chitPayDate','invDate','payrollDate','attendanceDate','readingDate','msServiceDate','maintServiceDate'].forEach(id=>{
+  setTimeout(()=>{ try{ runAllAlertCheckers(); }catch(e){} }, 3000);
+  setInterval(()=>{ try{ runAllAlertCheckers(); }catch(e){} }, 3600000);
+  // Set today's date on all date inputs
+  ['svcAppliedDate','incDate','expDate','bankTxnDate','emiDate','chitPayDate','invDate',
+   'payrollDate','attendanceDate','readingDate','msServiceDate','maintServiceDate'].forEach(id=>{
     const el = document.getElementById(id); if(el) el.value = todayStr();
   });
+  // Auto-login if session exists
   const sess = getSession();
-  if(sess){ bootApp(); }
+  if(sess){ try{ bootApp(); }catch(e){ console.error('bootApp error on auto-login:', e); } }
 });
 /* ====================================================================
    FINANCIAL ENGINE
@@ -4350,38 +4743,47 @@ function getAgeTurning(dob){
 let chartRevenueInst = null, chartExpenseInst = null;
 
 function renderDashboard(){
-  document.getElementById('dashToday').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long', day:'2-digit', month:'long', year:'numeric'});
+  if(!DB) return;
+  _ensureDBCollections();
+  try{
+    const today = todayStr();
+    const safeEl = (id, val) => { const e=document.getElementById(id); if(e) e.textContent=val; };
+    const safeHTML = (id, val) => { const e=document.getElementById(id); if(e) e.innerHTML=val; };
 
-  document.getElementById('kpiCustomers').textContent = DB.customers.length;
-  const newThisMonth = DB.customers.filter(c=> (c.addedOn||'').slice(0,7) === todayStr().slice(0,7)).length;
-  document.getElementById('kpiCustomersFoot').innerHTML = `<i class="fa-solid fa-arrow-up me-1"></i>${newThisMonth} added this month`;
+    safeEl('dashToday', new Date().toLocaleDateString('en-IN',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}));
+    safeEl('kpiCustomers', (DB.customers||[]).length);
+    const newThisMonth = (DB.customers||[]).filter(c=>(c.addedOn||'').slice(0,7)===today.slice(0,7)).length;
+    safeHTML('kpiCustomersFoot','<i class="fa-solid fa-arrow-up me-1"></i>'+newThisMonth+' added this month');
+    safeEl('kpiServices', (DB.services||[]).length);
+    safeEl('kpiServicesFoot', (DB.services||[]).filter(s=>s.status==='Completed').length+' completed');
+    const incomeToday  = (DB.income||[]).filter(i=>parseDateStr(i.date)===today).reduce((s,i)=>s+Number(i.amount||0),0);
+    const expenseToday = (DB.expense||[]).filter(e=>parseDateStr(e.date)===today).reduce((s,e)=>s+Number(e.amount||0),0);
+    safeEl('kpiIncomeToday',  fmtMoney(incomeToday));
+    safeEl('kpiExpenseToday', fmtMoney(expenseToday));
+    try{ safeEl('kpiCashBalance', fmtMoney(getCashBalance())); }catch(e){ safeEl('kpiCashBalance','—'); }
+    try{ safeEl('kpiBankBalance', fmtMoney(getBankBalance())); }catch(e){ safeEl('kpiBankBalance','—'); }
+    safeEl('kpiPending', (DB.services||[]).filter(s=>s.status==='Applied'||s.status==='Pending').length);
+    const thresh = Number(DB.settings?.lowStockThreshold||5);
+    const lowStockItems = (DB.inventory||[]).filter(p=>Number(p.quantity)<=Number(p.threshold??thresh));
+    safeEl('kpiLowStock', lowStockItems.length);
 
-  document.getElementById('kpiServices').textContent = DB.services.length;
-  const completedCount = DB.services.filter(s=>s.status==='Completed').length;
-  document.getElementById('kpiServicesFoot').textContent = `${completedCount} completed`;
+    // Bill reminders widget
+    try{
+      const bills=DB.billReminders||[];
+      safeEl('kpiBillOverdue',  bills.filter(b=>b.status==='Overdue').length);
+      safeEl('kpiBillDueToday', bills.filter(b=>parseDateStr(b.dueDate)===today&&b.status!=='Paid').length);
+    }catch(e){}
 
-  const today = todayStr();
-  const incomeToday = DB.income.filter(i=>i.date===today).reduce((s,i)=>s+i.amount,0);
-  const expenseToday = DB.expense.filter(e=>e.date===today).reduce((s,e)=>s+e.amount,0);
-  document.getElementById('kpiIncomeToday').textContent = fmtMoney(incomeToday);
-  document.getElementById('kpiExpenseToday').textContent = fmtMoney(expenseToday);
-
-  document.getElementById('kpiCashBalance').textContent = fmtMoney(getCashBalance());
-  document.getElementById('kpiBankBalance').textContent = fmtMoney(getBankBalance());
-
-  const pendingCount = DB.services.filter(s=>s.status==='Applied'||s.status==='Pending').length;
-  document.getElementById('kpiPending').textContent = pendingCount;
-
-  const lowStockItems = DB.inventory.filter(p=> Number(p.quantity) <= Number(p.threshold ?? DB.settings.lowStockThreshold));
-  document.getElementById('kpiLowStock').textContent = lowStockItems.length;
-
-  renderRevenueChart();
-  renderExpenseChart();
-  renderRecentTransactions();
-  renderDashboardReminders();
-  renderDashboardLowStock(lowStockItems);
-  renderDashboardPending();
-  renderDashboardBirthdays();
+    try{ renderRevenueChart(); }catch(e){ console.warn('Revenue chart error:',e); }
+    try{ renderExpenseChart(); }catch(e){ console.warn('Expense chart error:',e); }
+    try{ renderRecentTransactions(); }catch(e){ console.warn('Recent txn error:',e); }
+    try{ renderDashboardReminders(); }catch(e){ console.warn('Dashboard reminders error:',e); }
+    try{ renderDashboardLowStock(lowStockItems); }catch(e){}
+    try{ renderDashboardPending(); }catch(e){}
+    try{ renderDashboardBirthdays(); }catch(e){}
+  }catch(err){
+    console.error('renderDashboard error:', err);
+  }
 }
 
 function renderRevenueChart(){
@@ -4612,7 +5014,7 @@ function openCustomerModal(id){
     document.getElementById('custAadhaar').value = c.aadhaar||'';
     document.getElementById('custAddress').value = c.address||'';
     document.getElementById('custEmail').value = c.email||'';
-    document.getElementById('custDob').value = c.dob||'';
+    document.getElementById('custDob').value = parseDateStr(c.dob)||'';
     document.getElementById('custNotes').value = c.notes||'';
     document.getElementById('custAddedOn').value = fmtDate(c.addedOn);
   }else{
@@ -4893,12 +5295,12 @@ function openServiceModal(id, prefilledCustomerId){
     }
     updateServiceUrlHint();
     document.getElementById('svcAppNo').value=s.appNo||'';
-    document.getElementById('svcAppliedDate').value=s.appliedDate;
+    document.getElementById('svcAppliedDate').value = parseDateStr(s.appliedDate)||'';
     document.getElementById('svcAmount').value=s.amount;
     document.getElementById('svcPaidAmount').value=s.paidAmount||0;
     document.getElementById('svcPaymentMode').value=s.paymentMode;
     document.getElementById('svcStatus').value=s.status;
-    document.getElementById('svcReminderDate').value=s.reminderDate||'';
+    document.getElementById('svcReminderDate').value = parseDateStr(s.reminderDate)||'';
     document.getElementById('svcRemarks').value=s.remarks||'';
     document.getElementById('svcPrevPaid').value = s.paidAmount||0;
     document.getElementById('svcPrevMode').value = s.paymentMode;
@@ -5352,7 +5754,7 @@ function openReminderModal(id, prefilledCustomerId){
         appNoField.value = r.appNo||'';
       }
     }
-    document.getElementById('remDate').value=r.date;
+    document.getElementById('remDate').value = parseDateStr(r.date)||'';
     document.getElementById('remStatus').value=r.status;
   }else{
     document.getElementById('reminderModalTitle').textContent='Add Reminder';
@@ -5560,7 +5962,7 @@ function openLeadModal(id){
     document.getElementById('leadMobile').value=l.mobile;
     document.getElementById('leadService').value=l.service||'';
     document.getElementById('leadSource').value=l.source;
-    document.getElementById('leadFollowup').value=l.followup||'';
+    document.getElementById('leadFollowup').value = parseDateStr(l.followup)||'';
     document.getElementById('leadStatus').value=l.status;
   }else{
     document.getElementById('leadModalTitle').textContent='Add Lead';
@@ -5764,7 +6166,7 @@ function openIncomeModal(id){
     if(!i||i.autoGenerated) return;
     document.getElementById('incomeModalTitle').textContent='Edit Income';
     document.getElementById('incId').value       = i.id;
-    document.getElementById('incDate').value     = i.date||'';
+    document.getElementById('incDate').value = parseDateStr(i.date)||'';
     document.getElementById('incCustomer').value = i.customerId||'';
     document.getElementById('incService').value  = i.service||'';
     document.getElementById('incAmount').value   = i.amount||0;
@@ -5896,7 +6298,7 @@ function openExpenseModal(id){
     if(!x) return;
     document.getElementById('expenseModalTitle').textContent='Edit Expense';
     document.getElementById('expId').value         = x.id;
-    document.getElementById('expDate').value        = x.date||'';
+    document.getElementById('expDate').value = parseDateStr(x.date)||'';
     document.getElementById('expCategory').value   = x.category||'';
     document.getElementById('expAmount').value      = x.amount||0;
     document.getElementById('expMode').value        = x.mode||'Cash';
@@ -6023,7 +6425,7 @@ function openCashbookTxnModal(id){
     const txn = (DB.cashbookManual||[]).find(x=>x.id===id||x.uuid===id);
     if(txn){
       document.getElementById('cbTxnId').value     = txn.id||txn.uuid;
-      document.getElementById('cbTxnDate').value   = txn.date||'';
+      document.getElementById('cbTxnDate').value = parseDateStr(txn.date)||'';
       document.getElementById('cbTxnType').value   = txn.type||'In';
       document.getElementById('cbTxnDetail').value = txn.detail||'';
       document.getElementById('cbTxnAmount').value = txn.amount||0;
@@ -6095,19 +6497,20 @@ try{ document.getElementById('openingBalanceForm')?.addEventListener('submit',fu
 // Patch getCashSummary to include manual entries
 function getCashSummary(){
   if(!DB) return {opening:0,income:0,expense:0,closing:0,rows:[]};
+  _ensureDBCollections();
   const opening = Number(DB.cashbook?.openingBalance||0);
   const rows=[];
   // Cash income
   (DB.income||[]).filter(i=>i.mode==='Cash'&&!i._deleted).forEach(i=>{
-    rows.push({date:i.date,type:'Income',detail:(i.customerName?i.customerName+' — ':'')+i.service,in:Number(i.amount||0),out:0,source:'income',_id:i.uuid||String(i.id)});
+    rows.push({date:parseDateStr(i.date)||i.date,type:'Income',detail:(i.customerName?i.customerName+' — ':'')+i.service,in:Number(i.amount||0),out:0,source:'income',_id:i.uuid||String(i.id)});
   });
   // Cash expense
   (DB.expense||[]).filter(e=>e.mode==='Cash'&&!e._deleted).forEach(e=>{
-    rows.push({date:e.date,type:'Expense',detail:e.category+(e.description?' — '+e.description:''),in:0,out:Number(e.amount||0),source:'expense',_id:e.uuid||String(e.id)});
+    rows.push({date:parseDateStr(e.date)||e.date,type:'Expense',detail:e.category+(e.description?' — '+e.description:''),in:0,out:Number(e.amount||0),source:'expense',_id:e.uuid||String(e.id)});
   });
   // Manual entries
   (DB.cashbookManual||[]).filter(m=>!m._deleted).forEach(m=>{
-    rows.push({date:m.date,type:'Manual',detail:m.detail,in:m.type==='In'?Number(m.amount||0):0,out:m.type==='Out'?Number(m.amount||0):0,source:'manual',_id:m.uuid||String(m.id)});
+    rows.push({date:parseDateStr(m.date)||m.date,type:'Manual',detail:m.detail,in:m.type==='In'?Number(m.amount||0):0,out:m.type==='Out'?Number(m.amount||0):0,source:'manual',_id:m.uuid||String(m.id)});
   });
   rows.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
   const income  = rows.reduce((s,r)=>s+Number(r.in||0),0);
@@ -6178,7 +6581,7 @@ function openBankTxnModal(type, editId){
   if(editId){
     const txn = (DB.bankTxns||[]).find(t=>t.id===editId||t.uuid===editId);
     if(txn){
-      document.getElementById('bankTxnDate').value   = txn.date||'';
+      document.getElementById('bankTxnDate').value = parseDateStr(txn.date)||'';
       document.getElementById('bankTxnAmount').value = txn.amount||0;
       document.getElementById('bankTxnNote').value   = txn.note||'';
     }
@@ -6232,6 +6635,7 @@ function deleteBankTxn(id){
 
 function getBankSummary(){
   if(!DB) return {opening:0,deposits:0,withdrawals:0,closing:0,rows:[]};
+  _ensureDBCollections();
   const opening = Number(DB.bank?.openingBalance||0);
   const rows=[];
   // UPI/Bank income
@@ -6372,8 +6776,8 @@ function openLoanModal(id){
     document.getElementById('loanInterestRate').value= l.interestRate||'';
     document.getElementById('loanEmiAmount').value   = l.emiAmount||0;
     document.getElementById('loanOutstanding').value = l.outstanding||0;
-    document.getElementById('loanStartDate').value   = l.startDate||'';
-    document.getElementById('loanDueDate').value     = l.dueDate||'';
+    document.getElementById('loanStartDate').value = parseDateStr(l.startDate)||'';
+    document.getElementById('loanDueDate').value = parseDateStr(l.dueDate)||'';
     document.getElementById('loanNotes').value       = l.notes||'';
   }
   new bootstrap.Modal(document.getElementById('loanModal')).show();
@@ -6445,7 +6849,7 @@ function openEmiModal(loanId, editPayId){
   if(editPayId){
     const p=(DB.emiPayments||[]).find(x=>x.id===editPayId);
     if(p){
-      document.getElementById('emiDate').value   = p.date||'';
+      document.getElementById('emiDate').value = parseDateStr(p.date)||'';
       document.getElementById('emiNo').value     = p.emiNo||'';
       document.getElementById('emiAmount').value = p.amount||0;
       document.getElementById('emiMode').value   = p.mode||'Cash';
@@ -6624,7 +7028,7 @@ function openChitModal(id){
     document.getElementById('chitValue').value     = c.value||0;
     document.getElementById('chitMonthly').value   = c.monthly||0;
     document.getElementById('chitDuration').value  = c.duration||'';
-    document.getElementById('chitStartDate').value = c.startDate||'';
+    document.getElementById('chitStartDate').value = parseDateStr(c.startDate)||'';
     document.getElementById('chitStatus').value    = c.status||'Active';
     document.getElementById('chitNotes').value     = c.notes||'';
   }
@@ -6692,7 +7096,7 @@ function openChitInstModal(chitId, editId){
   if(editId){
     const p=(DB.chitPayments||[]).find(x=>x.id===editId);
     if(p){
-      document.getElementById('chitPayDate').value    = p.date||'';
+      document.getElementById('chitPayDate').value = parseDateStr(p.date)||'';
       document.getElementById('chitPayInstNo').value  = p.installmentNo||'';
       document.getElementById('chitPayAmount').value  = p.amount||0;
       document.getElementById('chitPayMode').value    = p.mode||'Cash';
@@ -6914,7 +7318,7 @@ function openTaskModal(id){
     document.getElementById('taskId').value=t.id;
     document.getElementById('taskTitle').value=t.title;
     document.getElementById('taskStaff').value=t.staffId||'';
-    document.getElementById('taskDueDate').value=t.dueDate||'';
+    document.getElementById('taskDueDate').value = parseDateStr(t.dueDate)||'';
     document.getElementById('taskStatus').value=t.status;
   }else{
     document.getElementById('taskModalTitle').textContent='Add Task';
@@ -7507,13 +7911,13 @@ function openMachineModal(id){
     document.getElementById('machModel').value=m.model||'';
     document.getElementById('machSerial').value=m.serial||'';
     document.getElementById('machAssetTag').value=m.assetTag||'';
-    document.getElementById('machPurchaseDate').value=m.purchaseDate||'';
-    document.getElementById('machInstallDate').value=m.installDate||'';
+    document.getElementById('machPurchaseDate').value = parseDateStr(m.purchaseDate)||'';
+    document.getElementById('machInstallDate').value=parseDateStr(m.installDate)||''||'';
     document.getElementById('machSupplier').value=m.supplier||'';
     document.getElementById('machCustomer').value=m.customerId||'';
     document.getElementById('machLocation').value=m.location||'';
     document.getElementById('machStatus').value=m.status;
-    document.getElementById('machWarrantyStart').value=m.warrantyStart||'';
+    document.getElementById('machWarrantyStart').value = parseDateStr(m.warrantyStart)||'';
     document.getElementById('machWarrantyPeriodVal').value=m.warrantyPeriodVal||1;
     document.getElementById('machWarrantyPeriodUnit').value=m.warrantyPeriodUnit||'years';
     document.getElementById('machAmcStart').value=m.amcStart||'';
@@ -7714,7 +8118,7 @@ function openPrinterModal(id){
     document.getElementById('printerType').value=p.type||'';
     document.getElementById('printerSerial').value=p.serial||'';
     document.getElementById('printerCustomer').value=p.customerId||'';
-    document.getElementById('printerInstallDate').value=p.installDate||'';
+    document.getElementById('printerInstallDate').value=parseDateStr(p.installDate)||''||'';
     document.getElementById('printerCurrentReading').value=p.currentReading||0;
     document.getElementById('printerMaxCapacity').value=p.maxCapacity||'';
     document.getElementById('printerTonerType').value=p.tonerType||'';
@@ -7816,7 +8220,7 @@ function openReadingModal(id){
     if(!r) return;
     document.getElementById('readingModalTitle').textContent='Edit Reading';
     document.getElementById('readingId').value=r.id;
-    document.getElementById('readingDate').value=r.date;
+    document.getElementById('readingDate').value = parseDateStr(r.date)||'';
     document.getElementById('readingPrinter').value=r.printerId;
     document.getElementById('readingOpening').value=r.opening;
     document.getElementById('readingClosing').value=r.closing;
@@ -7938,10 +8342,10 @@ function openPrinterServiceModal(id){
     document.getElementById('printerServiceModalTitle').textContent='Edit Printer Service Record';
     document.getElementById('psId').value=s.id;
     printerSel.value=s.printerId;
-    document.getElementById('psServiceDate').value=s.serviceDate;
+    document.getElementById('psServiceDate').value = parseDateStr(s.serviceDate)||'';
     document.getElementById('psServiceType').value=s.serviceType;
     document.getElementById('psReading').value=s.reading??'';
-    document.getElementById('psNextRenewalDate').value=s.nextRenewalDate||'';
+    document.getElementById('psNextRenewalDate').value=parseDateStr(s.nextRenewalDate)||''||'';
     document.getElementById('psNextRenewalReading').value=s.nextRenewalReading??'';
     document.getElementById('psCost').value=s.cost||0;
     document.getElementById('psNotes').value=s.notes||'';
@@ -8128,7 +8532,7 @@ function openMachineServiceModal(id, prefilledMachineId){
     document.getElementById('machineServiceModalTitle').textContent='Edit Service Record';
     document.getElementById('msId').value=s.id;
     document.getElementById('msMachine').value=s.machineId;
-    document.getElementById('msServiceDate').value=s.serviceDate;
+    document.getElementById('msServiceDate').value = parseDateStr(s.serviceDate)||'';
     document.getElementById('msComplaint').value=s.complaint;
     document.getElementById('msServiceType').value=s.serviceType||'';
     document.getElementById('msProblemDesc').value=s.problemDesc||'';
@@ -8137,7 +8541,7 @@ function openMachineServiceModal(id, prefilledMachineId){
     document.getElementById('msStatus').value=s.status;
     document.getElementById('msLabourCharge').value=s.labourCharge||0;
     document.getElementById('msSpareCost').value=s.spareCost||0;
-    document.getElementById('msNextServiceDate').value=s.nextServiceDate||'';
+    document.getElementById('msNextServiceDate').value = parseDateStr(s.nextServiceDate)||'';
   }else{
     document.getElementById('machineServiceModalTitle').textContent='Add Service Record';
     document.getElementById('msServiceDate').value=todayStr();
@@ -8254,7 +8658,7 @@ function openMaintenanceModal(id){
     document.getElementById('maintenanceModalTitle').textContent='Edit Maintenance';
     document.getElementById('maintId').value=m.id;
     document.getElementById('maintMachine').value=m.machineId;
-    document.getElementById('maintServiceDate').value=m.serviceDate;
+    document.getElementById('maintServiceDate').value = parseDateStr(m.serviceDate)||'';
     document.getElementById('maintTechnician').value=m.technicianId||'';
     document.getElementById('maintNotes').value=m.notes||'';
     document.getElementById('maintStatus').value=m.status;
@@ -8603,12 +9007,14 @@ function generateMachineReport(){
 }
 
 document.addEventListener('DOMContentLoaded', function(){
-  const now = new Date();
-  const first = new Date(now.getFullYear(), now.getMonth(), 1);
-  const fromEl = document.getElementById('machReportFrom');
-  const toEl = document.getElementById('machReportTo');
-  if(fromEl) fromEl.value = first.toISOString().slice(0,10);
-  if(toEl) toEl.value = todayStr();
+  try{
+    const now = new Date();
+    const first = new Date(now.getFullYear(), now.getMonth(), 1);
+    const fromEl = document.getElementById('machReportFrom');
+    const toEl = document.getElementById('machReportTo');
+    if(fromEl) fromEl.value = first.toISOString().slice(0,10);
+    if(toEl) toEl.value = todayStr();
+  }catch(e){}
 });
 /* ====================================================================
    REPORTS MODULE
@@ -8742,10 +9148,14 @@ function generateReport(){
 
 // set default report date ranges to current month
 document.addEventListener('DOMContentLoaded', function(){
-  const now = new Date();
-  const first = new Date(now.getFullYear(), now.getMonth(), 1);
-  document.getElementById('reportFrom').value = first.toISOString().slice(0,10);
-  document.getElementById('reportTo').value = todayStr();
+  try{
+    const now = new Date();
+    const first = new Date(now.getFullYear(), now.getMonth(), 1);
+    const rf = document.getElementById('reportFrom');
+    const rt = document.getElementById('reportTo');
+    if(rf) rf.value = first.toISOString().slice(0,10);
+    if(rt) rt.value = todayStr();
+  }catch(e){}
 });
 /* ====================================================================
    AUDIT LOG MODULE
@@ -8768,8 +9178,10 @@ function renderAuditLog(){
     </tr>`).join('');
 }
 ['auditSearch','auditActionFilter'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', renderAuditLog);
-  document.getElementById(id).addEventListener('change', renderAuditLog);
+  try{
+    const el = document.getElementById(id);
+    if(el){ el.addEventListener('input', renderAuditLog); el.addEventListener('change', renderAuditLog); }
+  }catch(e){}
 });
 function clearAuditLog(){
   showConfirm('Clear Audit Log?', 'This will permanently delete all audit history. Continue?', function(){
@@ -8803,7 +9215,7 @@ function renderSettings(){
   renderSettingsSyncStatus();
 }
 
-document.getElementById('logoUpload').addEventListener('change', function(e){
+try{ document.getElementById('logoUpload')?.addEventListener('change', function(e){
   const file = e.target.files[0];
   if(!file) return;
   const reader = new FileReader();
@@ -8817,6 +9229,7 @@ document.getElementById('logoUpload').addEventListener('change', function(e){
   };
   reader.readAsDataURL(file);
 });
+}catch(e){}
 
 function saveCompanySettings(){
   DB.settings.companyName = document.getElementById('settCompanyName').value.trim() || 'SevaERP';
@@ -9095,7 +9508,7 @@ function exportBackup(){
   showToast('Backup Downloaded','Your data has been saved as a JSON file.','success');
 }
 
-document.getElementById('restoreFileInput').addEventListener('change', function(e){
+try{ document.getElementById('restoreFileInput')?.addEventListener('change', function(e){
   const file = e.target.files[0];
   if(!file) return;
   showConfirm('Restore Data?', `Restoring "${file.name}" will overwrite ALL current data. This cannot be undone. Continue?`, function(){
@@ -9124,6 +9537,7 @@ document.getElementById('restoreFileInput').addEventListener('change', function(
   });
   e.target.value = '';
 });
+}catch(e){}
 
 /* ====================================================================
    SERVICE INVOICE MODULE
@@ -9211,7 +9625,7 @@ function openServiceInvoiceModal(id){
     document.getElementById('sInvId').value      = inv.id;
     document.getElementById('sInvUuid').value    = inv.uuid||'';
     document.getElementById('sInvNo').value      = inv.invoiceNo;
-    document.getElementById('sInvDate').value    = inv.invoiceDate;
+    document.getElementById('sInvDate').value = parseDateStr(inv.invoiceDate)||'';
     document.getElementById('sInvCustomer').value= inv.customerId||'';
     document.getElementById('sInvServiceName').value = inv.serviceName||'';
     document.getElementById('sInvSubtotal').value= inv.subtotal||0;
@@ -9344,8 +9758,521 @@ function downloadServiceInvoicePDF(){ downloadSInvPDF(Number(document.getElement
    We patch the existing saveDB to also ensure UUIDs on every record
 ==================================================================== */
 const _origSaveDB = typeof saveDB === 'function' ? saveDB : null;
+/* ====================================================================
+   BILL REMINDERS MODULE
+==================================================================== */
+let _billFilter = 'all';
+
+function setBillFilter(f, btn){
+  _billFilter = f;
+  document.querySelectorAll('#page-billreminders .btn-sm').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderBillReminders();
+}
+
+function autoUpdateBillStatuses(){
+  if(!Array.isArray(DB.billReminders)) return;
+  const today = todayStr();
+  let changed = false;
+  DB.billReminders.forEach(b=>{
+    if(b.status==='Paid') return;
+    if(b.dueDate && b.dueDate < today){ if(b.status!=='Overdue'){ b.status='Overdue'; b.updatedAt=new Date().toISOString(); changed=true; } }
+    else if(b.dueDate && b.dueDate >= today){ if(b.status!=='Pending'&&b.status!=='Paid'){ b.status='Pending'; b.updatedAt=new Date().toISOString(); changed=true; } }
+  });
+  if(changed) saveDB();
+}
+
+function renderBillReminders(){
+  if(!DB) return;
+  autoUpdateBillStatuses();
+  const today = todayStr();
+  let list = [...(DB.billReminders||[])];
+  // Filter
+  const q = (document.getElementById('billSearch')?.value||'').toLowerCase();
+  const cf = document.getElementById('billCatFilter')?.value||'';
+  if(q) list = list.filter(b=>(b.name||'').toLowerCase().includes(q)||(b.provider||'').toLowerCase().includes(q)||(b.billAutoId||'').toLowerCase().includes(q));
+  if(cf) list = list.filter(b=>b.category===cf);
+  if(_billFilter==='overdue')  list = list.filter(b=>b.status==='Overdue');
+  if(_billFilter==='pending')  list = list.filter(b=>b.status==='Pending');
+  if(_billFilter==='paid')     list = list.filter(b=>b.status==='Paid');
+  if(_billFilter==='duetoday') list = list.filter(b=>b.dueDate===today);
+  list.sort((a,b)=>a.dueDate<b.dueDate?-1:1);
+
+  const all = DB.billReminders||[];
+  const totalAmt = all.reduce((s,b)=>s+Number(b.amount||0),0);
+  renderFinanceKpi('billKpiGrid',[
+    {icon:'fa-file-invoice',      tone:'info',    label:'Total Bills',    value:all.length, sub:fmtMoney(totalAmt)},
+    {icon:'fa-calendar-day',      tone:'marigold',label:'Due Today',      value:all.filter(b=>b.dueDate===today&&b.status!=='Paid').length},
+    {icon:'fa-clock',             tone:'teal',    label:'Upcoming (7d)',  value:all.filter(b=>b.status==='Pending'&&b.dueDate&&daysFromToday(b.dueDate)<=7&&daysFromToday(b.dueDate)>=0).length},
+    {icon:'fa-circle-exclamation',tone:'danger',  label:'Overdue',        value:all.filter(b=>b.status==='Overdue').length},
+    {icon:'fa-circle-check',      tone:'success', label:'Paid',           value:all.filter(b=>b.status==='Paid').length},
+  ]);
+
+  const body = document.getElementById('billBody');
+  document.getElementById('billEmpty')?.classList.toggle('d-none', list.length>0);
+  if(!body) return;
+  const stCls = {Paid:'bs-completed', Pending:'bs-pending', Overdue:'bs-rejected'};
+  const stIcon = {Paid:'🟢', Pending:'🟠', Overdue:'🔴'};
+  body.innerHTML = list.map(b=>{
+    const diff = b.dueDate ? daysFromToday(b.dueDate) : null;
+    const dueLbl = diff===null?'—':diff===0?'<span class="down-text fw-bold">Today</span>':diff<0?`<span class="down-text">${Math.abs(diff)}d ago</span>`:`<span class="${diff<=3?'down-text':diff<=7?'':'up-text'}">${diff}d left</span>`;
+    return `<tr>
+      <td class="mono" style="font-size:11px;">${escapeHtml(b.billAutoId||'')}</td>
+      <td><span class="badge-status bs-applied" style="font-size:10px;">${escapeHtml(b.category||'')}</span></td>
+      <td><strong>${escapeHtml(b.name||'')}</strong>${b.provider?'<br><span style="font-size:11px;color:var(--text-3);">'+escapeHtml(b.provider)+'</span>':''}</td>
+      <td style="font-size:12px;">${escapeHtml(b.provider||'—')}</td>
+      <td class="text-end mono fw-bold">${fmtMoney(b.amount)}</td>
+      <td>${fmtDate(b.dueDate)}<br><span style="font-size:11px;">${dueLbl}</span></td>
+      <td><span class="badge-status ${stCls[b.status]||'bs-pending'}">${stIcon[b.status]||''} ${escapeHtml(b.status||'Pending')}</span></td>
+      <td style="font-size:12px;">${b.paidDate?fmtDate(b.paidDate):'—'}</td>
+      <td class="text-end">
+        <button class="btn btn-outline-app btn-icon-sq" onclick="openBillModal(${b.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
+        ${b.status!=='Paid'?`<button class="btn btn-outline-app btn-icon-sq" style="color:var(--success);" onclick="markBillPaid(${b.id})" title="Mark Paid"><i class="fa-solid fa-check"></i></button>`:''}
+        <button class="btn btn-ghost-danger btn-icon-sq" onclick="deleteBill(${b.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
+      </td></tr>`;
+  }).join('');
+}
+
+['billSearch','billCatFilter'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('input', renderBillReminders);
+  document.getElementById(id)?.addEventListener('change', renderBillReminders);
+});
+
+function openBillModal(id){
+  document.getElementById('billForm')?.reset();
+  document.getElementById('billId').value='';
+  if(id){
+    const b=(DB.billReminders||[]).find(x=>x.id===id);
+    if(!b) return;
+    document.getElementById('billModalTitle').textContent='Edit Bill';
+    document.getElementById('billId').value       = b.id;
+    document.getElementById('billAutoId').value   = b.billAutoId||'';
+    document.getElementById('billCategory').value = b.category||'';
+    document.getElementById('billName').value     = b.name||'';
+    document.getElementById('billProvider').value = b.provider||'';
+    document.getElementById('billAccNo').value    = b.accNo||'';
+    document.getElementById('billAmount').value   = b.amount||0;
+    document.getElementById('billDueDate').value = parseDateStr(b.dueDate)||'';
+    document.getElementById('billRemindDays').value = b.remindDays||7;
+    document.getElementById('billStatus').value   = b.status||'Pending';
+    document.getElementById('billPaidDate').value = parseDateStr(b.paidDate)||'';
+    document.getElementById('billNotes').value    = b.notes||'';
+  } else {
+    document.getElementById('billModalTitle').textContent='Add Bill Reminder';
+    const nextId = String(DB.meta.nextBillId||1).padStart(5,'0');
+    document.getElementById('billAutoId').value = 'BILL-'+nextId;
+  }
+  new bootstrap.Modal(document.getElementById('billModal')).show();
+}
+
+function saveBill(){
+  const id       = ((document.getElementById('billId')||{}).value||'');
+  const category = ((document.getElementById('billCategory')||{}).value||'');
+  const name     = (((document.getElementById('billName')||{}).value)||'').trim();
+  const amount   = Number((document.getElementById('billAmount')||{}).value)||0;
+  const dueDate  = ((document.getElementById('billDueDate')||{}).value||'');
+  if(!category){ showToast('Required','Please select a category.','danger'); return; }
+  if(!name)    { showToast('Required','Please enter a bill name.','danger'); return; }
+  if(!dueDate) { showToast('Required','Please select a due date.','danger'); return; }
+  const today  = todayStr();
+  const status = ((document.getElementById('billStatus')||{}).value)||
+    (dueDate < today ? 'Overdue' : 'Pending');
+  const now = new Date().toISOString();
+  const data = {
+    billAutoId:  document.getElementById('billAutoId')?.value||'',
+    category, name, amount,
+    provider:    (((document.getElementById('billProvider')||{}).value)||'').trim(),
+    accNo:       (((document.getElementById('billAccNo')||{}).value)||'').trim(),
+    dueDate,
+    remindDays:  Number((document.getElementById('billRemindDays')||{}).value)||7,
+    status,
+    paidDate:    ((document.getElementById('billPaidDate')||{}).value||''),
+    notes:       (((document.getElementById('billNotes')||{}).value)||'').trim(),
+    updatedAt:   now,
+  };
+  if(!DB.billReminders) DB.billReminders=[];
+  if(id){
+    const rec=DB.billReminders.find(x=>x.id===Number(id));
+    if(!rec){ showToast('Error','Record not found.','danger'); return; }
+    if(!rec.uuid) rec.uuid=generateUUID();
+    Object.assign(rec, data);
+    logAudit('Edit','BillReminders','Updated bill "'+name+'"');
+    showToast('Bill Updated', name, 'success');
+  } else {
+    if(!DB.meta.nextBillId) DB.meta.nextBillId=1;
+    data.id=DB.meta.nextBillId++;
+    data.uuid=generateUUID(); data.createdAt=now;
+    if(!data.billAutoId) data.billAutoId='BILL-'+String(data.id).padStart(5,'0');
+    DB.billReminders.push(data);
+    logAudit('Add','BillReminders','Added bill "'+name+'" '+fmtMoney(amount));
+    showToast('Bill Added', name+' — due '+fmtDate(dueDate), 'success');
+  }
+  saveDB(); renderBillReminders();
+  bootstrap.Modal.getInstance(document.getElementById('billModal'))?.hide();
+  // Create notifications for upcoming bills
+  checkBillDueAlerts();
+}
+
+function markBillPaid(id){
+  const b=(DB.billReminders||[]).find(x=>x.id===id);
+  if(!b) return;
+  b.status='Paid'; b.paidDate=todayStr(); b.updatedAt=new Date().toISOString();
+  logAudit('Edit','BillReminders','Marked paid: "'+b.name+'"');
+  saveDB(); renderBillReminders();
+  showToast('Marked Paid', b.name, 'success');
+}
+
+function deleteBill(id){
+  const b=(DB.billReminders||[]).find(x=>x.id===id);
+  if(!b) return;
+  showConfirm('Delete Bill?','Delete "'+b.name+'"?', ()=>{
+    b._deleted=true; b.updatedAt=new Date().toISOString();
+    queueOfflineChange('Bill_Reminders', Object.assign({},b));
+    DB.billReminders=DB.billReminders.filter(x=>x.id!==id);
+    logAudit('Delete','BillReminders','Deleted "'+b.name+'"');
+    saveDB(); renderBillReminders();
+    showToast('Deleted','Bill removed.','success');
+  });
+}
+
+function checkBillDueAlerts(){
+  if(!Array.isArray(DB.billReminders)) return;
+  const today=todayStr();
+  DB.billReminders.filter(b=>b.status!=='Paid').forEach(b=>{
+    if(!b.dueDate) return;
+    const diff = daysFromToday(b.dueDate);
+    const remDays = Number(b.remindDays||7);
+    if(diff<0){
+      // Overdue
+      const key='bill_overdue_'+b.id+'_'+today;
+      const exists=(DB.notifications||[]).find(n=>n.refId===key);
+      if(!exists) addNotification('BillDue','🔴 Bill Overdue: '+b.name,b.category+' — was due '+fmtDate(b.dueDate)+'. Amount: '+fmtMoney(b.amount),'Critical','BillReminders',key);
+    } else if(diff<=remDays){
+      const key='bill_due_'+b.id+'_'+today;
+      const exists=(DB.notifications||[]).find(n=>n.refId===key);
+      if(!exists){
+        const priority=diff<=1?'High':diff<=3?'High':'Normal';
+        addNotification('BillDue','🟠 Bill Due in '+diff+'d: '+b.name,b.category+' — due '+fmtDate(b.dueDate)+'. Amount: '+fmtMoney(b.amount),priority,'BillReminders',key);
+      }
+    }
+  });
+}
+
+/* ====================================================================
+   PRINTER RENEWAL MODULE
+==================================================================== */
+function calcRenewal(){
+  const current = Number((document.getElementById('renewalCurrentRdg')||{}).value)||0;
+  const limit   = Number((document.getElementById('renewalLimit')||{}).value)||0;
+  const daily   = Number((document.getElementById('renewalDailyAvg')||{}).value)||0;
+  const remaining = Math.max(0, limit - current);
+  const estDays   = daily>0 ? Math.round(remaining/daily) : 0;
+  const nextAt    = limit;
+  if(document.getElementById('renewalRemaining')) document.getElementById('renewalRemaining').value = remaining.toLocaleString('en-IN');
+  if(document.getElementById('renewalEstDays'))   document.getElementById('renewalEstDays').value   = daily>0 ? estDays+' days' : '—';
+  if(document.getElementById('renewalNextAt'))    document.getElementById('renewalNextAt').value    = nextAt.toLocaleString('en-IN');
+}
+
+function onRenewalPrinterChange(){
+  const printerId = (document.getElementById('renewalPrinter')||{}).value||'';
+  const printer = (DB.printers||[]).find(p=>p.id===Number(printerId));
+  const cust = printer ? (DB.customers||[]).find(c=>c.id===Number(printer.customerId)) : null;
+  if(document.getElementById('renewalCustomer'))
+    document.getElementById('renewalCustomer').value = cust?.name||printer?.customerName||'';
+  // Auto-fill current reading from latest printer reading
+  if(printer){
+    const readings = (DB.printerReadings||[]).filter(r=>r.printerId===printer.id||r.printerName===printer.name);
+    if(readings.length){
+      const latest = readings.sort((a,b)=>a.readingDate<b.readingDate?1:-1)[0];
+      if(document.getElementById('renewalCurrentRdg'))
+        document.getElementById('renewalCurrentRdg').value = latest.currentReading||latest.closing||0;
+      // Calc daily avg from last 30 days
+      const thirtyAgo = new Date(); thirtyAgo.setDate(thirtyAgo.getDate()-30);
+      const recent = readings.filter(r=>r.readingDate>=thirtyAgo.toISOString().slice(0,10));
+      if(recent.length>=2){
+        recent.sort((a,b)=>a.readingDate<b.readingDate?1:-1);
+        const span = recent.length-1;
+        const totalCopies = (Number(recent[0].currentReading||recent[0].closing||0)) - (Number(recent[span].previousReading||recent[span].opening||0));
+        const avgDaily = Math.round(totalCopies/30);
+        if(document.getElementById('renewalDailyAvg') && avgDaily>0)
+          document.getElementById('renewalDailyAvg').value = avgDaily;
+      }
+    }
+  }
+  calcRenewal();
+}
+
+function renderPrinterRenewal(){
+  if(!DB) return;
+  const list = [...(DB.printerRenewals||[])];
+  const tf = (document.getElementById('renewalTypeFilter')||{}).value||'';
+  const sf = (document.getElementById('renewalStatusFilter')||{}).value||'';
+  const q  = ((document.getElementById('renewalSearch')||{}).value||'').toLowerCase();
+  const cf = (document.getElementById('renewalCustFilter')||{}).value||'';
+
+  // Enrich with computed status
+  const enriched = list.map(r=>{
+    const current  = Number(r.currentRdg||0);
+    const limit    = Number(r.limit||0);
+    const remaining= Math.max(0,limit-current);
+    const pct      = limit>0 ? (current/limit)*100 : 0;
+    const daily    = Number(r.dailyAvg||0);
+    const estDays  = daily>0 ? Math.round(remaining/daily) : null;
+    const estDate  = estDays!==null ? (() => { const d=new Date(); d.setDate(d.getDate()+estDays); return d.toISOString().slice(0,10); })() : null;
+    const status   = pct>=100 ? 'Renewal Required' : pct>=90 ? 'Near Renewal' : 'OK';
+    return {...r, remaining, pct, estDays, estDate, status};
+  });
+
+  // Populate customer filter
+  const custs = [...new Set(enriched.map(r=>r.customerName).filter(Boolean))];
+  const custSel = document.getElementById('renewalCustFilter');
+  if(custSel){ const cur=custSel.value; custSel.innerHTML='<option value="">All Customers</option>'+custs.map(c=>`<option${c===cur?' selected':''}>${escapeHtml(c)}</option>`).join(''); }
+
+  let filtered = enriched;
+  if(tf) filtered=filtered.filter(r=>r.renewalType===tf);
+  if(sf) filtered=filtered.filter(r=>r.status===sf);
+  if(q)  filtered=filtered.filter(r=>(r.printerName||'').toLowerCase().includes(q)||(r.customerName||'').toLowerCase().includes(q));
+  if(cf) filtered=filtered.filter(r=>r.customerName===cf);
+  filtered.sort((a,b)=>b.pct-a.pct);
+
+  // KPIs
+  renderFinanceKpi('renewalKpiGrid',[
+    {icon:'fa-print',               tone:'info',    label:'Total Records',    value:enriched.length},
+    {icon:'fa-triangle-exclamation',tone:'warning', label:'Near Renewal (90%)',value:enriched.filter(r=>r.status==='Near Renewal').length},
+    {icon:'fa-circle-xmark',        tone:'danger',  label:'Renewal Required', value:enriched.filter(r=>r.status==='Renewal Required').length},
+    {icon:'fa-fill-drip',           tone:'teal',    label:'Toner Due',        value:enriched.filter(r=>r.renewalType==='Toner'&&r.status!=='OK').length},
+    {icon:'fa-drum',                tone:'marigold',label:'Drum Due',         value:enriched.filter(r=>r.renewalType==='Drum'&&r.status!=='OK').length},
+  ]);
+
+  const body = document.getElementById('renewalBody');
+  document.getElementById('renewalEmpty')?.classList.toggle('d-none', filtered.length>0);
+  if(!body) return;
+  const stCls = {'OK':'bs-completed','Near Renewal':'bs-pending','Renewal Required':'bs-rejected'};
+  const stIcon= {'OK':'🟢','Near Renewal':'🟠','Renewal Required':'🔴'};
+  body.innerHTML = filtered.map(r=>`<tr>
+    <td><strong>${escapeHtml(r.printerName||'')}</strong></td>
+    <td>${escapeHtml(r.customerName||'—')}</td>
+    <td><span class="badge-status bs-applied" style="font-size:10px;">${escapeHtml(r.renewalType||'')}</span></td>
+    <td class="text-end mono">${Number(r.currentRdg||0).toLocaleString('en-IN')}</td>
+    <td class="text-end mono">${Number(r.limit||0).toLocaleString('en-IN')}</td>
+    <td class="text-end mono ${r.status==='Renewal Required'?'down-text':r.status==='Near Renewal'?'':'up-text'}">${r.remaining.toLocaleString('en-IN')}</td>
+    <td class="text-end mono">${Number(r.dailyAvg||0).toLocaleString('en-IN')}</td>
+    <td class="text-end mono">${r.estDays!==null?r.estDays+'d':'—'}</td>
+    <td>${r.estDate?fmtDate(r.estDate):'—'}</td>
+    <td><span class="badge-status ${stCls[r.status]||'bs-pending'}">${stIcon[r.status]||''} ${escapeHtml(r.status)}</span>
+        <div style="width:100%;height:4px;background:var(--border-soft);border-radius:2px;margin-top:3px;">
+          <div style="height:4px;border-radius:2px;background:${r.pct>=100?'var(--danger)':r.pct>=90?'var(--warning)':'var(--success)'};width:${Math.min(100,r.pct).toFixed(0)}%;"></div>
+        </div></td>
+    <td class="text-end">
+      <button class="btn btn-outline-app btn-icon-sq" onclick="openRenewalModal(${r.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
+      <button class="btn btn-ghost-danger btn-icon-sq" onclick="deleteRenewal(${r.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
+    </td></tr>`).join('');
+}
+
+function openRenewalModal(id){
+  document.getElementById('renewalForm')?.reset();
+  document.getElementById('renewalId').value='';
+  document.getElementById('renewalModalTitle').textContent = id ? 'Edit Renewal Record' : 'Add Renewal Record';
+  // Populate printer dropdown
+  const ps=document.getElementById('renewalPrinter');
+  if(ps) ps.innerHTML='<option value="">-- Select Printer --</option>'+(DB.printers||[]).map(p=>`<option value="${p.id}">${escapeHtml(p.name||p.printerName||'Printer '+p.id)}</option>`).join('');
+  if(id){
+    const r=(DB.printerRenewals||[]).find(x=>x.id===id);
+    if(!r) return;
+    document.getElementById('renewalId').value        = r.id;
+    document.getElementById('renewalPrinter').value   = r.printerId||'';
+    document.getElementById('renewalCustomer').value  = r.customerName||'';
+    document.getElementById('renewalType').value      = r.renewalType||'';
+    document.getElementById('renewalLimit').value     = r.limit||0;
+    document.getElementById('renewalCurrentRdg').value= r.currentRdg||0;
+    document.getElementById('renewalLastSvcRdg').value= r.lastSvcRdg||0;
+    document.getElementById('renewalDailyAvg').value  = r.dailyAvg||0;
+    document.getElementById('renewalNotes').value     = r.notes||'';
+    calcRenewal();
+  }
+  new bootstrap.Modal(document.getElementById('renewalModal')).show();
+}
+
+function saveRenewal(){
+  const id       = ((document.getElementById('renewalId')||{}).value||'');
+  const printerId= Number((document.getElementById('renewalPrinter')||{}).value)||0;
+  const rType    = ((document.getElementById('renewalType')||{}).value||'');
+  const limit    = Number((document.getElementById('renewalLimit')||{}).value)||0;
+  if(!printerId){ showToast('Required','Please select a printer.','danger'); return; }
+  if(!rType)    { showToast('Required','Please select renewal type.','danger'); return; }
+  if(limit<=0)  { showToast('Required','Please enter renewal limit.','danger'); return; }
+  const printer  = (DB.printers||[]).find(p=>p.id===printerId);
+  const now = new Date().toISOString();
+  const currentRdg = Number((document.getElementById('renewalCurrentRdg')||{}).value)||0;
+  const data = {
+    printerId, printerName: printer?.name||printer?.printerName||'',
+    customerName: (document.getElementById('renewalCustomer')||{}).value||'',
+    renewalType: rType, limit, currentRdg,
+    lastSvcRdg:  Number((document.getElementById('renewalLastSvcRdg')||{}).value)||0,
+    dailyAvg:    Number((document.getElementById('renewalDailyAvg')||{}).value)||0,
+    notes:       (((document.getElementById('renewalNotes')||{}).value)||'').trim(),
+    updatedAt:   now,
+  };
+  if(!DB.printerRenewals) DB.printerRenewals=[];
+  if(id){
+    const rec=DB.printerRenewals.find(x=>x.id===Number(id));
+    if(!rec){ showToast('Error','Record not found.','danger'); return; }
+    if(!rec.uuid) rec.uuid=generateUUID();
+    Object.assign(rec,data);
+    logAudit('Edit','PrinterRenewals','Updated '+data.printerName+' '+rType);
+    showToast('Updated',data.printerName+' — '+rType,'success');
+  } else {
+    if(!DB.meta.nextRenewalId) DB.meta.nextRenewalId=1;
+    data.id=DB.meta.nextRenewalId++;
+    data.uuid=generateUUID(); data.createdAt=now;
+    DB.printerRenewals.push(data);
+    logAudit('Add','PrinterRenewals','Added '+data.printerName+' '+rType);
+    showToast('Renewal Added',data.printerName+' — '+rType,'success');
+  }
+  saveDB(); renderPrinterRenewal();
+  bootstrap.Modal.getInstance(document.getElementById('renewalModal'))?.hide();
+}
+
+function deleteRenewal(id){
+  const r=(DB.printerRenewals||[]).find(x=>x.id===id);
+  if(!r) return;
+  showConfirm('Delete Renewal Record?',`Delete ${r.printerName} - ${r.renewalType}?`, ()=>{
+    r._deleted=true; r.updatedAt=new Date().toISOString();
+    queueOfflineChange('Printer_Renewals', Object.assign({},r));
+    DB.printerRenewals=DB.printerRenewals.filter(x=>x.id!==id);
+    saveDB(); renderPrinterRenewal();
+    showToast('Deleted','Renewal record removed.','success');
+  });
+}
+
+/* ====================================================================
+   SESSION TIMEOUT & AUTO-LOGOUT
+==================================================================== */
+let _sessionTimer=null, _sessionWarningTimer=null, _sessionCountdownInterval=null;
+const SESSION_ACTIVITY_KEY='sevaerp_last_activity';
+
+function resetSessionTimer(){
+  localStorage.setItem(SESSION_ACTIVITY_KEY, Date.now());
+  if(_sessionWarningTimer){ clearTimeout(_sessionWarningTimer); _sessionWarningTimer=null; }
+  if(_sessionTimer){ clearTimeout(_sessionTimer); _sessionTimer=null; }
+  const timeout = Number(DB?.settings?.sessionTimeout||0);
+  if(!timeout) return; // disabled
+  const warnAt  = (timeout-60)*1000; // warn 60s before
+  if(warnAt>0){
+    _sessionWarningTimer = setTimeout(()=>showSessionWarning(timeout), warnAt);
+  } else {
+    _sessionTimer = setTimeout(()=>confirmLogout(), timeout*1000);
+  }
+}
+
+function showSessionWarning(){
+  let secs=60;
+  document.getElementById('sessionCountdown').textContent=secs;
+  const modal = new bootstrap.Modal(document.getElementById('sessionTimeoutModal'));
+  modal.show();
+  _sessionCountdownInterval=setInterval(()=>{
+    secs--;
+    document.getElementById('sessionCountdown').textContent=secs;
+    if(secs<=0){ clearInterval(_sessionCountdownInterval); confirmLogout(); }
+  },1000);
+  _sessionTimer=null;
+}
+
+function continueSession(){
+  if(_sessionCountdownInterval){ clearInterval(_sessionCountdownInterval); _sessionCountdownInterval=null; }
+  bootstrap.Modal.getInstance(document.getElementById('sessionTimeoutModal'))?.hide();
+  resetSessionTimer();
+}
+
+function stopSessionTimer(){
+  if(_sessionTimer)           { clearTimeout(_sessionTimer);           _sessionTimer=null; }
+  if(_sessionWarningTimer)    { clearTimeout(_sessionWarningTimer);    _sessionWarningTimer=null; }
+  if(_sessionCountdownInterval){ clearInterval(_sessionCountdownInterval); _sessionCountdownInterval=null; }
+}
+
+// Reset timer on any user activity
+['click','keydown','mousemove','touchstart'].forEach(ev=>{
+  document.addEventListener(ev, ()=>{ if(document.getElementById('appShell')&&!document.getElementById('appShell').classList.contains('d-none')) resetSessionTimer(); }, {passive:true});
+});
+
+// Add settings option for session timeout (patch into settings render)
+function getSessionTimeoutLabel(v){
+  return v==900?'15 Minutes':v==1800?'30 Minutes':v==3600?'1 Hour':'Disabled';
+}
+
+// Hook into runAllAlertCheckers to also check bills
+const _origRunAllAlerts = runAllAlertCheckers;
+runAllAlertCheckers = function(){
+  if(typeof _origRunAllAlerts==='function') _origRunAllAlerts();
+  checkBillDueAlerts();
+};
+
+function saveSessionTimeout(val){
+  if(!DB.settings) DB.settings={};
+  DB.settings.sessionTimeout = Number(val)||0;
+  saveDB();
+  stopSessionTimer();
+  resetSessionTimer();
+  showToast('Session Timeout', val>0?'Set to '+getSessionTimeoutLabel(Number(val)):'Disabled','success');
+}
+
+// Restore session timeout selector value on settings render
+const _origRenderSettings = typeof renderSettings==='function' ? renderSettings : null;
+// Patch renderPage to restore selector
+const _origNavigateTo2 = navigateTo;
+navigateTo = function(page){
+  _origNavigateTo2(page);
+  if(page==='settings'){
+    setTimeout(()=>{
+      const sel=document.getElementById('sessionTimeoutSel');
+      if(sel) sel.value = String(DB?.settings?.sessionTimeout||0);
+    },50);
+  }
+};
+
 // UUID patching runs on initial load via ensureUUIDs() call in DOMContentLoaded
 
 </script>
+
+<!-- LOGOUT CONFIRM MODAL -->
+<div class="modal fade" id="logoutConfirmModal" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title"><i class="fa-solid fa-right-from-bracket text-danger me-2"></i>Confirm Logout</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <p style="font-size:14px;margin-bottom:6px;">Are you sure you want to logout?</p>
+        <p style="font-size:12px;color:var(--text-3);margin-bottom:0;">Unsaved data may be lost.</p>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button class="btn btn-outline-app" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger" onclick="confirmLogout()"><i class="fa-solid fa-right-from-bracket me-1"></i>Logout</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SESSION TIMEOUT WARNING MODAL -->
+<div class="modal fade" id="sessionTimeoutModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title"><i class="fa-solid fa-clock text-warning me-2"></i>Session Expiring</h5>
+      </div>
+      <div class="modal-body pt-2 text-center">
+        <p style="font-size:14px;margin-bottom:4px;">Your session will expire in</p>
+        <div id="sessionCountdown" style="font-size:44px;font-weight:900;color:var(--danger);line-height:1.1;">60</div>
+        <p style="font-size:13px;margin-top:4px;color:var(--text-2);">seconds. Continue session?</p>
+      </div>
+      <div class="modal-footer border-0 pt-0 justify-content-between">
+        <button class="btn btn-outline-app btn-sm" onclick="confirmLogout()">Logout Now</button>
+        <button class="btn btn-marigold" onclick="continueSession()"><i class="fa-solid fa-rotate me-1"></i>Continue Session</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
