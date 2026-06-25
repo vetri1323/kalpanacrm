@@ -441,14 +441,14 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
     <form id="loginForm">
       <div class="mb-3">
         <label class="form-label">Username</label>
-        <input type="text" class="form-control" id="loginUser" placeholder="admin" autocomplete="username" required>
+        <input type="text" class="form-control" id="loginUser" placeholder="username" autocomplete="username" required>
       </div>
       <div class="mb-3">
         <label class="form-label">Password</label>
         <input type="password" class="form-control" id="loginPass" placeholder="••••••••" autocomplete="current-password" required>
       </div>
       <button type="submit" class="btn btn-marigold w-100 mt-2 py-2">Sign In <i class="fa-solid fa-arrow-right ms-1"></i></button>
-      <p class="text-center mt-3 mb-0" style="font-size:11.5px;color:var(--text-3);">Default: <b>admin</b> / <b>admin123</b></p>
+      <p class="text-center mt-3 mb-0" style="font-size:11.5px;color:var(--text-3);">"Powered by Sahainfotech solutions."</p>
     </form>
   </div>
 </div>
@@ -606,13 +606,13 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
           <div class="kpi-card kpi-tone-success">
             <div class="kpi-top"><div class="kpi-icon"><i class="fa-solid fa-arrow-trend-up"></i></div></div>
             <div class="kpi-label">Today's Income</div>
-            <div class="kpi-value" id="kpiIncomeToday">₹0</div>
+            <div class="kpi-value" id="kpiIncomeToday">—</div>
             <div class="kpi-foot" style="color:var(--text-3);">Cash + UPI</div>
           </div>
           <div class="kpi-card kpi-tone-danger">
             <div class="kpi-top"><div class="kpi-icon"><i class="fa-solid fa-arrow-trend-down"></i></div></div>
             <div class="kpi-label">Today's Expenses</div>
-            <div class="kpi-value" id="kpiExpenseToday">₹0</div>
+            <div class="kpi-value" id="kpiExpenseToday">—</div>
             <div class="kpi-foot" style="color:var(--text-3);">Cash + UPI</div>
           </div>
         </div>
@@ -621,13 +621,13 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
           <div class="kpi-card kpi-tone-success">
             <div class="kpi-top"><div class="kpi-icon"><i class="fa-solid fa-wallet"></i></div></div>
             <div class="kpi-label">Cash Balance</div>
-            <div class="kpi-value" id="kpiCashBalance">₹0</div>
+            <div class="kpi-value" id="kpiCashBalance">—</div>
             <div class="kpi-foot" style="color:var(--text-3);">Cashbook live balance</div>
           </div>
           <div class="kpi-card kpi-tone-info">
             <div class="kpi-top"><div class="kpi-icon"><i class="fa-solid fa-building-columns"></i></div></div>
             <div class="kpi-label">Bank Balance</div>
-            <div class="kpi-value" id="kpiBankBalance">₹0</div>
+            <div class="kpi-value" id="kpiBankBalance">—</div>
             <div class="kpi-foot" style="color:var(--text-3);">UPI / bank live balance</div>
           </div>
           <div class="kpi-card kpi-tone-warning">
@@ -849,18 +849,32 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
         </div>
       </section>
       <!-- ============ INCOME ============ -->
+      <!-- ============ INCOME ============ -->
       <section class="page-section" id="page-income">
         <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
-          <div><div class="section-title">Income</div><div class="section-desc mb-0">All revenue entries (service payments auto-recorded here)</div></div>
+          <div><div class="section-title">Income</div><div class="section-desc mb-0">All revenue entries — service payments auto-recorded here</div></div>
           <button class="btn btn-marigold" onclick="openIncomeModal()"><i class="fa-solid fa-plus me-1"></i>Add Income</button>
         </div>
+        <!-- KPI Summary -->
+        <div class="kpi-grid" id="incKpiGrid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px;"></div>
         <div class="card-app">
           <div class="card-app-body">
+            <!-- Date Quick Filters -->
+            <div class="d-flex gap-2 flex-wrap mb-2" id="incQuickFilters">
+              <button class="btn btn-sm btn-outline-app active" data-qf="all"    onclick="setFinanceQuickFilter('inc','all',this)">All</button>
+              <button class="btn btn-sm btn-outline-app"        data-qf="today"  onclick="setFinanceQuickFilter('inc','today',this)">Today</button>
+              <button class="btn btn-sm btn-outline-app"        data-qf="week"   onclick="setFinanceQuickFilter('inc','week',this)">This Week</button>
+              <button class="btn btn-sm btn-outline-app"        data-qf="month"  onclick="setFinanceQuickFilter('inc','month',this)">This Month</button>
+              <button class="btn btn-sm btn-outline-app"        data-qf="year"   onclick="setFinanceQuickFilter('inc','year',this)">This Year</button>
+              <button class="btn btn-sm btn-outline-app"        data-qf="custom" onclick="setFinanceQuickFilter('inc','custom',this)">Custom Range</button>
+            </div>
+            <div class="filter-bar" id="incCustomRange" style="display:none;">
+              <input type="date" class="form-control" id="incFrom" title="From date">
+              <input type="date" class="form-control" id="incTo"   title="To date">
+            </div>
             <div class="filter-bar">
               <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="form-control" id="incSearch" placeholder="Search customer / service..."></div>
-              <input type="date" class="form-control" id="incFrom" title="From date">
-              <input type="date" class="form-control" id="incTo" title="To date">
-              <select class="form-select" id="incModeFilter"><option value="">All Modes</option><option>Cash</option><option>UPI</option></select>
+              <select class="form-select" id="incModeFilter" style="max-width:150px;"><option value="">All Modes</option><option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option></select>
               <div class="ms-auto d-flex gap-2">
                 <button class="btn btn-outline-app btn-sm" onclick="exportTableExcel('incomeTable','Income')"><i class="fa-solid fa-file-excel me-1"></i>Excel</button>
                 <button class="btn btn-outline-app btn-sm" onclick="exportTablePDF('incomeTable','Income Report')"><i class="fa-solid fa-file-pdf me-1"></i>PDF</button>
@@ -868,12 +882,15 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
             </div>
             <div class="table-responsive-app">
               <table class="table-app mb-0" id="incomeTable">
-                <thead><tr><th>Date</th><th>Customer</th><th>Service</th><th>Mode</th><th class="text-end">Amount</th><th class="text-end">Actions</th></tr></thead>
+                <thead><tr><th>Date</th><th>Customer</th><th>Service / Description</th><th>Mode</th><th class="text-end">Amount</th><th class="text-end">Actions</th></tr></thead>
                 <tbody id="incomeBody"></tbody>
               </table>
             </div>
             <div id="incomeEmpty" class="empty-state d-none"><i class="fa-solid fa-arrow-trend-up"></i><h6>No income recorded</h6></div>
-            <div class="text-end mt-2 pe-2"><strong>Total: <span class="mono" id="incomeTotalFooter">₹0</span></strong></div>
+            <div class="d-flex justify-content-between align-items-center mt-2 pe-2 ps-1">
+              <span id="incCountLabel" style="font-size:12px;color:var(--text-3);"></span>
+              <strong>Total: <span class="mono up-text" id="incomeTotalFooter">—</span></strong>
+            </div>
           </div>
         </div>
       </section>
@@ -884,12 +901,25 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
           <div><div class="section-title">Expense</div><div class="section-desc mb-0">Operational expenses — reduces Cashbook or Bank balance</div></div>
           <button class="btn btn-marigold" onclick="openExpenseModal()"><i class="fa-solid fa-plus me-1"></i>Add Expense</button>
         </div>
+        <div class="kpi-grid" id="expKpiGrid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px;"></div>
         <div class="card-app">
           <div class="card-app-body">
+            <div class="d-flex gap-2 flex-wrap mb-2">
+              <button class="btn btn-sm btn-outline-app active" onclick="setFinanceQuickFilter('exp','all',this)">All</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setFinanceQuickFilter('exp','today',this)">Today</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setFinanceQuickFilter('exp','week',this)">This Week</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setFinanceQuickFilter('exp','month',this)">This Month</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setFinanceQuickFilter('exp','year',this)">This Year</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setFinanceQuickFilter('exp','custom',this)">Custom Range</button>
+            </div>
+            <div class="filter-bar" id="expCustomRange" style="display:none;">
+              <input type="date" class="form-control" id="expFrom">
+              <input type="date" class="form-control" id="expTo">
+            </div>
             <div class="filter-bar">
               <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="form-control" id="expSearch" placeholder="Search category / description..."></div>
-              <select class="form-select" id="expCategoryFilter"><option value="">All Categories</option></select>
-              <select class="form-select" id="expModeFilter"><option value="">All Modes</option><option>Cash</option><option>UPI</option></select>
+              <select class="form-select" id="expCategoryFilter" style="max-width:180px;"><option value="">All Categories</option></select>
+              <select class="form-select" id="expModeFilter" style="max-width:140px;"><option value="">All Modes</option><option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option></select>
               <div class="ms-auto d-flex gap-2">
                 <button class="btn btn-outline-app btn-sm" onclick="exportTableExcel('expenseTable','Expense')"><i class="fa-solid fa-file-excel me-1"></i>Excel</button>
                 <button class="btn btn-outline-app btn-sm" onclick="exportTablePDF('expenseTable','Expense Report')"><i class="fa-solid fa-file-pdf me-1"></i>PDF</button>
@@ -902,29 +932,58 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
               </table>
             </div>
             <div id="expenseEmpty" class="empty-state d-none"><i class="fa-solid fa-arrow-trend-down"></i><h6>No expenses recorded</h6></div>
-            <div class="text-end mt-2 pe-2"><strong>Total: <span class="mono" id="expenseTotalFooter">₹0</span></strong></div>
+            <div class="d-flex justify-content-between align-items-center mt-2 pe-2 ps-1">
+              <span id="expCountLabel" style="font-size:12px;color:var(--text-3);"></span>
+              <strong>Total: <span class="mono down-text" id="expenseTotalFooter">—</span></strong>
+            </div>
           </div>
         </div>
       </section>
 
       <!-- ============ CASHBOOK ============ -->
+      <!-- ============ CASHBOOK ============ -->
       <section class="page-section" id="page-cashbook">
         <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
           <div><div class="section-title">Cashbook</div><div class="section-desc mb-0">Physical cash-in-hand ledger</div></div>
-          <button class="btn btn-outline-app" onclick="openOpeningBalanceModal()"><i class="fa-solid fa-pen me-1"></i>Set Opening Balance</button>
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline-app" onclick="openOpeningBalanceModal()"><i class="fa-solid fa-pen me-1"></i>Set Opening Balance</button>
+            <button class="btn btn-marigold" onclick="openCashbookTxnModal()"><i class="fa-solid fa-plus me-1"></i>Add Entry</button>
+          </div>
         </div>
-        <div class="kpi-grid">
-          <div class="kpi-card kpi-tone-info"><div class="kpi-top"><div class="kpi-icon"><i class="fa-solid fa-door-open"></i></div></div><div class="kpi-label">Opening Balance</div><div class="kpi-value" id="cbOpening">₹0</div></div>
-          <div class="kpi-card kpi-tone-success"><div class="kpi-top"><div class="kpi-icon"><i class="fa-solid fa-arrow-down"></i></div></div><div class="kpi-label">Cash Income</div><div class="kpi-value" id="cbIncome">₹0</div></div>
-          <div class="kpi-card kpi-tone-danger"><div class="kpi-top"><div class="kpi-icon"><i class="fa-solid fa-arrow-up"></i></div></div><div class="kpi-label">Cash Expense</div><div class="kpi-value" id="cbExpense">₹0</div></div>
-          <div class="kpi-card kpi-tone-marigold"><div class="kpi-top"><div class="kpi-icon"><i class="fa-solid fa-vault"></i></div></div><div class="kpi-label">Closing Balance</div><div class="kpi-value" id="cbClosing">₹0</div></div>
+        <div class="kpi-grid mb-3">
+          <div class="kpi-card kpi-tone-info"><div class="kpi-top"><div class="kpi-icon"><i class="fa-solid fa-door-open"></i></div></div><div class="kpi-label">Opening Balance</div><div class="kpi-value" id="cbOpening">—</div></div>
+          <div class="kpi-card kpi-tone-success"><div class="kpi-top"><div class="kpi-icon"><i class="fa-solid fa-arrow-down"></i></div></div><div class="kpi-label">Cash In</div><div class="kpi-value" id="cbIncome">—</div></div>
+          <div class="kpi-card kpi-tone-danger"><div class="kpi-top"><div class="kpi-icon"><i class="fa-solid fa-arrow-up"></i></div></div><div class="kpi-label">Cash Out</div><div class="kpi-value" id="cbExpense">—</div></div>
+          <div class="kpi-card kpi-tone-marigold"><div class="kpi-top"><div class="kpi-icon"><i class="fa-solid fa-vault"></i></div></div><div class="kpi-label">Closing Balance</div><div class="kpi-value" id="cbClosing">—</div></div>
         </div>
         <div class="card-app">
-          <div class="card-app-head"><h6><i class="fa-solid fa-receipt me-2"></i>Cash Transaction History</h6></div>
+          <div class="card-app-head">
+            <h6><i class="fa-solid fa-receipt me-2"></i>Cash Transaction History</h6>
+            <div class="d-flex gap-2 ms-auto">
+              <button class="btn btn-outline-app btn-sm" onclick="exportTableExcel('cashbookTable','Cashbook')"><i class="fa-solid fa-file-excel me-1"></i>Excel</button>
+              <button class="btn btn-outline-app btn-sm" onclick="exportTablePDF('cashbookTable','Cashbook Report')"><i class="fa-solid fa-file-pdf me-1"></i>PDF</button>
+            </div>
+          </div>
           <div class="card-app-body">
+            <div class="d-flex gap-2 flex-wrap mb-2">
+              <button class="btn btn-sm btn-outline-app active" onclick="setFinanceQuickFilter('cb','all',this)">All</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setFinanceQuickFilter('cb','today',this)">Today</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setFinanceQuickFilter('cb','week',this)">This Week</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setFinanceQuickFilter('cb','month',this)">This Month</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setFinanceQuickFilter('cb','year',this)">This Year</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setFinanceQuickFilter('cb','custom',this)">Custom Range</button>
+            </div>
+            <div class="filter-bar" id="cbCustomRange" style="display:none;">
+              <input type="date" class="form-control" id="cbFrom">
+              <input type="date" class="form-control" id="cbTo">
+            </div>
+            <div class="filter-bar mb-2">
+              <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="form-control" id="cbSearch" placeholder="Search detail..."></div>
+              <select class="form-select" id="cbTypeFilter" style="max-width:150px;"><option value="">All Types</option><option>Income</option><option>Expense</option><option>Manual</option></select>
+            </div>
             <div class="table-responsive-app">
               <table class="table-app mb-0" id="cashbookTable">
-                <thead><tr><th>Date</th><th>Type</th><th>Detail</th><th class="text-end">In</th><th class="text-end">Out</th><th class="text-end">Balance</th></tr></thead>
+                <thead><tr><th>Date</th><th>Type</th><th>Detail</th><th class="text-end">In (₹)</th><th class="text-end">Out (₹)</th><th class="text-end">Balance (₹)</th><th class="text-end">Actions</th></tr></thead>
                 <tbody id="cashbookBody"></tbody>
               </table>
             </div>
@@ -938,21 +997,43 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
         <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
           <div><div class="section-title">Bank</div><div class="section-desc mb-0">UPI / Bank account ledger</div></div>
           <div class="d-flex gap-2">
-            <button class="btn btn-outline-app" onclick="openBankTxnModal('Deposit')"><i class="fa-solid fa-plus me-1"></i>Deposit</button>
-            <button class="btn btn-outline-app" onclick="openBankTxnModal('Withdrawal')"><i class="fa-solid fa-minus me-1"></i>Withdrawal</button>
+            <button class="btn btn-outline-app" onclick="openBankTxnModal('Deposit')"><i class="fa-solid fa-arrow-down me-1"></i>Deposit</button>
+            <button class="btn btn-outline-app" onclick="openBankTxnModal('Withdrawal')"><i class="fa-solid fa-arrow-up me-1"></i>Withdrawal</button>
           </div>
         </div>
-        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);">
-          <div class="kpi-card kpi-tone-info"><div class="kpi-top"><div class="kpi-icon"><i class="fa-solid fa-building-columns"></i></div></div><div class="kpi-label">Current Balance</div><div class="kpi-value" id="bankCurrentBalance">₹0</div></div>
-          <div class="kpi-card kpi-tone-success"><div class="kpi-top"><div class="kpi-icon"><i class="fa-solid fa-arrow-down"></i></div></div><div class="kpi-label">Total Deposits</div><div class="kpi-value" id="bankDeposits">₹0</div></div>
-          <div class="kpi-card kpi-tone-danger"><div class="kpi-top"><div class="kpi-icon"><i class="fa-solid fa-arrow-up"></i></div></div><div class="kpi-label">Total Withdrawals</div><div class="kpi-value" id="bankWithdrawals">₹0</div></div>
+        <div class="kpi-grid mb-3" style="grid-template-columns:repeat(3,1fr);">
+          <div class="kpi-card kpi-tone-info"><div class="kpi-top"><div class="kpi-icon"><i class="fa-solid fa-building-columns"></i></div></div><div class="kpi-label">Current Balance</div><div class="kpi-value" id="bankCurrentBalance">—</div></div>
+          <div class="kpi-card kpi-tone-success"><div class="kpi-top"><div class="kpi-icon"><i class="fa-solid fa-arrow-down"></i></div></div><div class="kpi-label">Total Deposits</div><div class="kpi-value" id="bankDeposits">—</div></div>
+          <div class="kpi-card kpi-tone-danger"><div class="kpi-top"><div class="kpi-icon"><i class="fa-solid fa-arrow-up"></i></div></div><div class="kpi-label">Total Withdrawals</div><div class="kpi-value" id="bankWithdrawals">—</div></div>
         </div>
         <div class="card-app">
-          <div class="card-app-head"><h6><i class="fa-solid fa-list me-2"></i>Transaction History</h6></div>
+          <div class="card-app-head">
+            <h6><i class="fa-solid fa-list me-2"></i>Transaction History</h6>
+            <div class="d-flex gap-2 ms-auto">
+              <button class="btn btn-outline-app btn-sm" onclick="exportTableExcel('bankTable','Bank')"><i class="fa-solid fa-file-excel me-1"></i>Excel</button>
+              <button class="btn btn-outline-app btn-sm" onclick="exportTablePDF('bankTable','Bank Report')"><i class="fa-solid fa-file-pdf me-1"></i>PDF</button>
+            </div>
+          </div>
           <div class="card-app-body">
+            <div class="d-flex gap-2 flex-wrap mb-2">
+              <button class="btn btn-sm btn-outline-app active" onclick="setFinanceQuickFilter('bk','all',this)">All</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setFinanceQuickFilter('bk','today',this)">Today</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setFinanceQuickFilter('bk','week',this)">This Week</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setFinanceQuickFilter('bk','month',this)">This Month</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setFinanceQuickFilter('bk','year',this)">This Year</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setFinanceQuickFilter('bk','custom',this)">Custom Range</button>
+            </div>
+            <div class="filter-bar" id="bkCustomRange" style="display:none;">
+              <input type="date" class="form-control" id="bkFrom">
+              <input type="date" class="form-control" id="bkTo">
+            </div>
+            <div class="filter-bar mb-2">
+              <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="form-control" id="bkSearch" placeholder="Search transactions..."></div>
+              <select class="form-select" id="bkTypeFilter" style="max-width:160px;"><option value="">All Types</option><option>Deposit</option><option>Withdrawal</option></select>
+            </div>
             <div class="table-responsive-app">
               <table class="table-app mb-0" id="bankTable">
-                <thead><tr><th>Date</th><th>Type</th><th>Detail</th><th class="text-end">In</th><th class="text-end">Out</th><th class="text-end">Balance</th></tr></thead>
+                <thead><tr><th>Date</th><th>Type</th><th>Note</th><th class="text-end">In (₹)</th><th class="text-end">Out (₹)</th><th class="text-end">Balance (₹)</th><th class="text-end">Actions</th></tr></thead>
                 <tbody id="bankBody"></tbody>
               </table>
             </div>
@@ -964,21 +1045,107 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
       <!-- ============ LOANS ============ -->
       <section class="page-section" id="page-loans">
         <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
-          <div><div class="section-title">Loans</div><div class="section-desc mb-0">Business loans, vehicle loans & credit cards</div></div>
+          <div><div class="section-title">Loans & EMI</div><div class="section-desc mb-0">Business loans, vehicle loans, credit cards & EMI tracking</div></div>
           <button class="btn btn-marigold" onclick="openLoanModal()"><i class="fa-solid fa-plus me-1"></i>Add Loan</button>
         </div>
-        <div class="row g-3" id="loansCardGrid"></div>
-        <div id="loansEmpty" class="empty-state d-none"><i class="fa-solid fa-hand-holding-dollar"></i><h6>No loans added yet</h6></div>
+        <div class="kpi-grid mb-3" id="loanKpiGrid" style="grid-template-columns:repeat(4,1fr);"></div>
+        <div class="card-app mb-3">
+          <div class="card-app-head">
+            <h6><i class="fa-solid fa-hand-holding-dollar me-2"></i>Loan Accounts</h6>
+            <div class="ms-auto d-flex gap-2">
+              <select class="form-select form-select-sm" id="loanStatusFilter" onchange="renderLoans()" style="max-width:140px;"><option value="">All Status</option><option>Active</option><option>Closed</option></select>
+            </div>
+          </div>
+          <div class="card-app-body p-0">
+            <div class="table-responsive-app">
+              <table class="table-app mb-0" id="loansTable">
+                <thead><tr><th>Loan Name</th><th>Type</th><th>Amount</th><th>EMI</th><th>Paid</th><th>Outstanding</th><th>Next Due</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+                <tbody id="loansBody"></tbody>
+              </table>
+            </div>
+            <div id="loansEmpty" class="empty-state d-none"><i class="fa-solid fa-hand-holding-dollar"></i><h6>No loans added yet</h6></div>
+          </div>
+        </div>
+        <!-- EMI Payment History -->
+        <div class="card-app">
+          <div class="card-app-head">
+            <h6><i class="fa-solid fa-receipt me-2"></i>EMI Payment History</h6>
+            <div class="ms-auto d-flex gap-2">
+              <select class="form-select form-select-sm" id="emiLoanFilter" onchange="renderEMIHistory()" style="max-width:200px;"><option value="">All Loans</option></select>
+              <button class="btn btn-outline-app btn-sm" onclick="exportTableExcel('emiHistTable','EMI_Payments')"><i class="fa-solid fa-file-excel me-1"></i>Excel</button>
+            </div>
+          </div>
+          <div class="card-app-body">
+            <div class="d-flex gap-2 flex-wrap mb-2">
+              <button class="btn btn-sm btn-outline-app active" onclick="setFinanceQuickFilter('emi','all',this)">All</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setFinanceQuickFilter('emi','today',this)">Today</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setFinanceQuickFilter('emi','month',this)">This Month</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setFinanceQuickFilter('emi','year',this)">This Year</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setFinanceQuickFilter('emi','custom',this)">Custom Range</button>
+            </div>
+            <div class="filter-bar" id="emiCustomRange" style="display:none;">
+              <input type="date" class="form-control" id="emiFrom">
+              <input type="date" class="form-control" id="emiTo">
+            </div>
+            <div class="table-responsive-app">
+              <table class="table-app mb-0" id="emiHistTable">
+                <thead><tr><th>Date</th><th>Loan</th><th>EMI No.</th><th>Mode</th><th class="text-end">Amount</th><th class="text-end">Actions</th></tr></thead>
+                <tbody id="emiHistBody"></tbody>
+              </table>
+            </div>
+            <div id="emiHistEmpty" class="empty-state d-none"><i class="fa-solid fa-receipt"></i><h6>No EMI payments recorded</h6></div>
+          </div>
+        </div>
       </section>
 
       <!-- ============ CHIT FINANCE ============ -->
       <section class="page-section" id="page-chits">
         <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
-          <div><div class="section-title">Chit Finance</div><div class="section-desc mb-0">Track chit fund subscriptions</div></div>
+          <div><div class="section-title">Chit Finance</div><div class="section-desc mb-0">Track chit fund subscriptions and installment payments</div></div>
           <button class="btn btn-marigold" onclick="openChitModal()"><i class="fa-solid fa-plus me-1"></i>Add Chit</button>
         </div>
-        <div class="row g-3" id="chitsCardGrid"></div>
-        <div id="chitsEmpty" class="empty-state d-none"><i class="fa-solid fa-layer-group"></i><h6>No chits added yet</h6></div>
+        <div class="kpi-grid mb-3" id="chitKpiGrid" style="grid-template-columns:repeat(4,1fr);"></div>
+        <div class="card-app mb-3">
+          <div class="card-app-body p-0">
+            <div class="table-responsive-app">
+              <table class="table-app mb-0" id="chitsTable">
+                <thead><tr><th>Chit Name</th><th>Total Value</th><th>Monthly</th><th>Duration</th><th>Paid Inst.</th><th>Total Paid</th><th>Balance</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+                <tbody id="chitsBody"></tbody>
+              </table>
+            </div>
+            <div id="chitsEmpty" class="empty-state d-none"><i class="fa-solid fa-layer-group"></i><h6>No chits added yet</h6></div>
+          </div>
+        </div>
+        <!-- Chit Installment History -->
+        <div class="card-app">
+          <div class="card-app-head">
+            <h6><i class="fa-solid fa-receipt me-2"></i>Installment Payment History</h6>
+            <div class="ms-auto d-flex gap-2">
+              <select class="form-select form-select-sm" id="chitInstFilter" onchange="renderChitInstHistory()" style="max-width:200px;"><option value="">All Chits</option></select>
+              <button class="btn btn-outline-app btn-sm" onclick="exportTableExcel('chitInstTable','Chit_Installments')"><i class="fa-solid fa-file-excel me-1"></i>Excel</button>
+            </div>
+          </div>
+          <div class="card-app-body">
+            <div class="d-flex gap-2 flex-wrap mb-2">
+              <button class="btn btn-sm btn-outline-app active" onclick="setFinanceQuickFilter('chit','all',this)">All</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setFinanceQuickFilter('chit','today',this)">Today</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setFinanceQuickFilter('chit','month',this)">This Month</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setFinanceQuickFilter('chit','year',this)">This Year</button>
+              <button class="btn btn-sm btn-outline-app" onclick="setFinanceQuickFilter('chit','custom',this)">Custom Range</button>
+            </div>
+            <div class="filter-bar" id="chitCustomRange" style="display:none;">
+              <input type="date" class="form-control" id="chitFrom">
+              <input type="date" class="form-control" id="chitTo">
+            </div>
+            <div class="table-responsive-app">
+              <table class="table-app mb-0" id="chitInstTable">
+                <thead><tr><th>Date</th><th>Chit</th><th>Inst. No.</th><th>Mode</th><th class="text-end">Amount</th><th class="text-end">Actions</th></tr></thead>
+                <tbody id="chitInstBody"></tbody>
+              </table>
+            </div>
+            <div id="chitInstEmpty" class="empty-state d-none"><i class="fa-solid fa-receipt"></i><h6>No installments recorded</h6></div>
+          </div>
+        </div>
       </section>
       <!-- ============ INVOICE ============ -->
       <section class="page-section" id="page-invoice">
@@ -1996,15 +2163,22 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
         <div class="modal-body">
           <input type="hidden" id="incId">
           <input type="hidden" id="incLinkedService">
-          <div class="mb-3"><label class="form-label">Date <span class="required-star">*</span></label><input type="date" class="form-control" id="incDate" required></div>
-          <div class="mb-3"><label class="form-label">Customer</label><select class="form-select" id="incCustomer"><option value="">-- General Income --</option></select></div>
-          <div class="mb-3"><label class="form-label">Service / Description</label><input type="text" class="form-control" id="incService"></div>
-          <div class="mb-3"><label class="form-label">Amount <span class="required-star">*</span></label><input type="number" step="0.01" min="0" class="form-control" id="incAmount" required></div>
-          <div class="mb-3"><label class="form-label">Payment Mode</label><select class="form-select" id="incMode"><option>Cash</option><option>UPI</option></select></div>
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label">Date <span class="required-star">*</span></label><input type="date" class="form-control" id="incDate" required></div>
+            <div class="col-md-6"><label class="form-label">Payment Mode <span class="required-star">*</span></label>
+              <select class="form-select" id="incMode">
+                <option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option>
+              </select>
+            </div>
+            <div class="col-12"><label class="form-label">Customer</label><select class="form-select" id="incCustomer"><option value="">-- General / Walk-in --</option></select></div>
+            <div class="col-12"><label class="form-label">Service / Description <span class="required-star">*</span></label><input type="text" class="form-control" id="incService" placeholder="e.g. PAN Card, Passport, Walk-in sale" required></div>
+            <div class="col-12"><label class="form-label">Amount (₹) <span class="required-star">*</span></label><input type="number" step="0.01" min="0" class="form-control" id="incAmount" required></div>
+            <div class="col-12"><label class="form-label">Notes</label><textarea class="form-control" id="incNotes" rows="2" placeholder="Optional remarks"></textarea></div>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline-app" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-marigold"><i class="fa-solid fa-floppy-disk me-1"></i>Save Income</button>
+          <button type="button" class="btn btn-marigold" onclick="saveIncome()"><i class="fa-solid fa-floppy-disk me-1"></i>Save Income</button>
         </div>
       </form>
     </div>
@@ -2019,20 +2193,26 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
       <form id="expenseForm">
         <div class="modal-body">
           <input type="hidden" id="expId">
-          <div class="mb-3"><label class="form-label">Date <span class="required-star">*</span></label><input type="date" class="form-control" id="expDate" required></div>
-          <div class="mb-3"><label class="form-label">Category <span class="required-star">*</span></label>
-            <input type="text" class="form-control" list="expCategoryList" id="expCategory" placeholder="e.g. Rent, Electricity, Stationery, Internet" required>
-            <datalist id="expCategoryList">
-              <option>Rent</option><option>Electricity</option><option>Internet</option><option>Stationery</option><option>Printer Ink</option><option>Staff Salary</option><option>Maintenance</option><option>Travel</option><option>Tea/Snacks</option><option>Other</option>
-            </datalist>
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label">Date <span class="required-star">*</span></label><input type="date" class="form-control" id="expDate" required></div>
+            <div class="col-md-6"><label class="form-label">Payment Mode <span class="required-star">*</span></label>
+              <select class="form-select" id="expMode"><option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option></select>
+            </div>
+            <div class="col-12"><label class="form-label">Category <span class="required-star">*</span></label>
+              <input type="text" class="form-control" list="expCategoryList" id="expCategory" placeholder="e.g. Rent, Electricity, Stationery" required>
+              <datalist id="expCategoryList">
+                <option>Rent</option><option>Electricity</option><option>Internet</option><option>Stationery</option>
+                <option>Printer Ink</option><option>Staff Salary</option><option>Maintenance</option><option>Travel</option>
+                <option>Tea/Snacks</option><option>Taxes & Fees</option><option>Equipment</option><option>Other</option>
+              </datalist>
+            </div>
+            <div class="col-12"><label class="form-label">Amount (₹) <span class="required-star">*</span></label><input type="number" step="0.01" min="0" class="form-control" id="expAmount" required></div>
+            <div class="col-12"><label class="form-label">Description</label><textarea class="form-control" id="expDescription" rows="2" placeholder="Optional details"></textarea></div>
           </div>
-          <div class="mb-3"><label class="form-label">Amount <span class="required-star">*</span></label><input type="number" step="0.01" min="0" class="form-control" id="expAmount" required></div>
-          <div class="mb-3"><label class="form-label">Payment Mode</label><select class="form-select" id="expMode"><option>Cash</option><option>UPI</option></select></div>
-          <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" id="expDescription" rows="2"></textarea></div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline-app" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-marigold"><i class="fa-solid fa-floppy-disk me-1"></i>Save Expense</button>
+          <button type="button" class="btn btn-marigold" onclick="saveExpense()"><i class="fa-solid fa-floppy-disk me-1"></i>Save Expense</button>
         </div>
       </form>
     </div>
@@ -2046,12 +2226,42 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
       <div class="modal-header"><h5 class="modal-title">Set Cashbook Opening Balance</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <form id="openingBalanceForm">
         <div class="modal-body">
-          <div class="mb-3"><label class="form-label">Opening Balance Amount <span class="required-star">*</span></label><input type="number" step="0.01" class="form-control" id="openingBalanceInput" required></div>
-          <p style="font-size:12px;color:var(--text-3);">This sets the starting cash-in-hand figure. All future income/expense will be added/subtracted from this.</p>
+          <div class="mb-3"><label class="form-label">Opening Balance Amount (₹) <span class="required-star">*</span></label><input type="number" step="0.01" class="form-control" id="openingBalanceInput" required></div>
+          <p style="font-size:12px;color:var(--text-3);">This sets the starting cash-in-hand figure. All future Cash income/expense will be added/subtracted from this.</p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline-app" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-marigold">Save</button>
+          <button type="button" class="btn btn-marigold" onclick="saveOpeningBalance()">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- CASHBOOK MANUAL ENTRY MODAL -->
+<div class="modal fade" id="cashbookTxnModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="cbTxnModalTitle">Add Cashbook Entry</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <form id="cashbookTxnForm">
+        <div class="modal-body">
+          <input type="hidden" id="cbTxnId">
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label">Date <span class="required-star">*</span></label><input type="date" class="form-control" id="cbTxnDate" required></div>
+            <div class="col-md-6"><label class="form-label">Type <span class="required-star">*</span></label>
+              <select class="form-select" id="cbTxnType" required>
+                <option value="">-- Select --</option>
+                <option value="In">Cash In</option>
+                <option value="Out">Cash Out</option>
+              </select>
+            </div>
+            <div class="col-12"><label class="form-label">Description <span class="required-star">*</span></label><input type="text" class="form-control" id="cbTxnDetail" placeholder="e.g. Owner deposit, Cash withdrawn for expenses" required></div>
+            <div class="col-12"><label class="form-label">Amount (₹) <span class="required-star">*</span></label><input type="number" step="0.01" min="0" class="form-control" id="cbTxnAmount" required></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-app" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-marigold" onclick="saveCashbookEntry()"><i class="fa-solid fa-floppy-disk me-1"></i>Save Entry</button>
         </div>
       </form>
     </div>
@@ -2065,14 +2275,17 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
       <div class="modal-header"><h5 class="modal-title" id="bankTxnModalTitle">Bank Transaction</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <form id="bankTxnForm">
         <div class="modal-body">
+          <input type="hidden" id="bankTxnId">
           <input type="hidden" id="bankTxnType">
-          <div class="mb-3"><label class="form-label">Date</label><input type="date" class="form-control" id="bankTxnDate" required></div>
-          <div class="mb-3"><label class="form-label">Amount <span class="required-star">*</span></label><input type="number" step="0.01" min="0" class="form-control" id="bankTxnAmount" required></div>
-          <div class="mb-3"><label class="form-label">Note</label><input type="text" class="form-control" id="bankTxnNote" placeholder="e.g. Owner deposit, ATM withdrawal"></div>
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label">Date <span class="required-star">*</span></label><input type="date" class="form-control" id="bankTxnDate" required></div>
+            <div class="col-md-6"><label class="form-label">Amount (₹) <span class="required-star">*</span></label><input type="number" step="0.01" min="0" class="form-control" id="bankTxnAmount" required></div>
+            <div class="col-12"><label class="form-label">Note / Description</label><input type="text" class="form-control" id="bankTxnNote" placeholder="e.g. Owner deposit, ATM withdrawal, Cheque received"></div>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline-app" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-marigold" id="bankTxnSubmitBtn">Save</button>
+          <button type="button" class="btn btn-marigold" id="bankTxnSubmitBtn" onclick="saveBankTxn()"><i class="fa-solid fa-floppy-disk me-1"></i>Save</button>
         </div>
       </form>
     </div>
@@ -2087,18 +2300,26 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
       <form id="loanForm">
         <div class="modal-body">
           <input type="hidden" id="loanId">
-          <div class="mb-3"><label class="form-label">Loan Type</label><select class="form-select" id="loanType"><option>Business Loan</option><option>Vehicle Loan</option><option>Credit Card</option></select></div>
-          <div class="mb-3"><label class="form-label">Loan Name <span class="required-star">*</span></label><input type="text" class="form-control" id="loanName" placeholder="e.g. HDFC Business Loan" required></div>
           <div class="row g-3">
-            <div class="col-md-6"><label class="form-label">Loan Amount <span class="required-star">*</span></label><input type="number" step="0.01" min="0" class="form-control" id="loanAmount" required></div>
-            <div class="col-md-6"><label class="form-label">EMI Amount <span class="required-star">*</span></label><input type="number" step="0.01" min="0" class="form-control" id="loanEmiAmount" required></div>
-            <div class="col-md-6"><label class="form-label">Due Date (monthly)</label><input type="number" min="1" max="31" class="form-control" id="loanDueDate" placeholder="Day of month, e.g. 5"></div>
-            <div class="col-md-6"><label class="form-label">Outstanding Amount <span class="required-star">*</span></label><input type="number" step="0.01" min="0" class="form-control" id="loanOutstanding" required></div>
+            <div class="col-md-6"><label class="form-label">Loan Type</label>
+              <select class="form-select" id="loanType"><option>Business Loan</option><option>Vehicle Loan</option><option>Credit Card</option><option>Personal Loan</option><option>Gold Loan</option><option>Home Loan</option></select>
+            </div>
+            <div class="col-md-6"><label class="form-label">Status</label>
+              <select class="form-select" id="loanStatus"><option>Active</option><option>Closed</option></select>
+            </div>
+            <div class="col-12"><label class="form-label">Loan Name / Bank <span class="required-star">*</span></label><input type="text" class="form-control" id="loanName" placeholder="e.g. HDFC Business Loan" required></div>
+            <div class="col-md-6"><label class="form-label">Loan Amount (₹) <span class="required-star">*</span></label><input type="number" step="0.01" min="0" class="form-control" id="loanAmount" required></div>
+            <div class="col-md-6"><label class="form-label">Interest Rate (%)</label><input type="number" step="0.01" min="0" class="form-control" id="loanInterestRate" placeholder="Annual rate"></div>
+            <div class="col-md-6"><label class="form-label">EMI Amount (₹) <span class="required-star">*</span></label><input type="number" step="0.01" min="0" class="form-control" id="loanEmiAmount" required></div>
+            <div class="col-md-6"><label class="form-label">Outstanding (₹) <span class="required-star">*</span></label><input type="number" step="0.01" min="0" class="form-control" id="loanOutstanding" required></div>
+            <div class="col-md-6"><label class="form-label">Start Date</label><input type="date" class="form-control" id="loanStartDate"></div>
+            <div class="col-md-6"><label class="form-label">EMI Due Day (1-31)</label><input type="number" min="1" max="31" class="form-control" id="loanDueDate" placeholder="e.g. 5"></div>
+            <div class="col-12"><label class="form-label">Notes</label><textarea class="form-control" id="loanNotes" rows="2"></textarea></div>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline-app" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-marigold"><i class="fa-solid fa-floppy-disk me-1"></i>Save Loan</button>
+          <button type="button" class="btn btn-marigold" onclick="saveLoan()"><i class="fa-solid fa-floppy-disk me-1"></i>Save Loan</button>
         </div>
       </form>
     </div>
@@ -2109,33 +2330,44 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
 <div class="modal fade" id="emiModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title">Record EMI Payment</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title" id="emiModalTitle">Record EMI Payment</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <form id="emiForm">
         <div class="modal-body">
+          <input type="hidden" id="emiPayId">
           <input type="hidden" id="emiLoanId">
-          <div class="mb-3"><label class="form-label">Payment Date</label><input type="date" class="form-control" id="emiDate" required></div>
-          <div class="mb-3"><label class="form-label">Amount <span class="required-star">*</span></label><input type="number" step="0.01" min="0" class="form-control" id="emiAmount" required></div>
-          <div class="mb-3"><label class="form-label">Payment Mode</label><select class="form-select" id="emiMode"><option>Cash</option><option>UPI</option></select></div>
+          <div class="row g-3">
+            <div class="col-12"><label class="form-label">Loan</label><select class="form-select" id="emiLoanSelect"></select></div>
+            <div class="col-md-6"><label class="form-label">Payment Date <span class="required-star">*</span></label><input type="date" class="form-control" id="emiDate" required></div>
+            <div class="col-md-6"><label class="form-label">EMI No.</label><input type="number" class="form-control" id="emiNo" placeholder="Auto" min="1"></div>
+            <div class="col-md-6"><label class="form-label">Amount (₹) <span class="required-star">*</span></label><input type="number" step="0.01" min="0" class="form-control" id="emiAmount" required></div>
+            <div class="col-md-6"><label class="form-label">Payment Mode</label>
+              <select class="form-select" id="emiMode"><option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option></select>
+            </div>
+            <div class="col-12"><label class="form-label">Notes</label><input type="text" class="form-control" id="emiNotes" placeholder="Optional remarks"></div>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline-app" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-marigold">Record Payment</button>
+          <button type="button" class="btn btn-marigold" onclick="saveEmiPayment()"><i class="fa-solid fa-floppy-disk me-1"></i>Record Payment</button>
         </div>
       </form>
     </div>
   </div>
 </div>
 
-<!-- EMI HISTORY MODAL -->
+<!-- EMI HISTORY MODAL (keep for backward compat) -->
 <div class="modal fade" id="emiHistoryModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title">EMI Payment History — <span id="emiHistLoanName"></span></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">EMI History — <span id="emiHistLoanName"></span></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
-        <div class="table-responsive-app"><table class="table-app mb-0"><thead><tr><th>Date</th><th>Amount</th><th>Mode</th></tr></thead><tbody id="emiHistoryBody"></tbody></table></div>
-        <div id="emiHistoryEmpty" class="empty-state d-none"><i class="fa-solid fa-receipt"></i><h6>No EMI payments recorded</h6></div>
+        <div class="table-responsive-app"><table class="table-app mb-0"><thead><tr><th>Date</th><th>EMI No.</th><th>Amount</th><th>Mode</th><th>Actions</th></tr></thead><tbody id="emiHistoryBody"></tbody></table></div>
+        <div id="emiHistoryEmpty" class="empty-state d-none"><i class="fa-solid fa-receipt"></i><h6>No EMI payments</h6></div>
       </div>
-      <div class="modal-footer"><button class="btn btn-outline-app" data-bs-dismiss="modal">Close</button></div>
+      <div class="modal-footer">
+        <button class="btn btn-marigold" onclick="openEmiModal(document.getElementById('emiHistLoanName').dataset.lid)"><i class="fa-solid fa-plus me-1"></i>Record Payment</button>
+        <button class="btn btn-outline-app" data-bs-dismiss="modal">Close</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2148,35 +2380,50 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
       <form id="chitForm">
         <div class="modal-body">
           <input type="hidden" id="chitId">
-          <div class="mb-3"><label class="form-label">Chit Name <span class="required-star">*</span></label><input type="text" class="form-control" id="chitName" required></div>
           <div class="row g-3">
-            <div class="col-md-6"><label class="form-label">Chit Value <span class="required-star">*</span></label><input type="number" step="0.01" min="0" class="form-control" id="chitValue" required></div>
-            <div class="col-md-6"><label class="form-label">Monthly Amount <span class="required-star">*</span></label><input type="number" step="0.01" min="0" class="form-control" id="chitMonthly" required></div>
+            <div class="col-12"><label class="form-label">Chit Name / Company <span class="required-star">*</span></label><input type="text" class="form-control" id="chitName" placeholder="e.g. Shriram Chit Fund - 2024" required></div>
+            <div class="col-md-6"><label class="form-label">Total Chit Value (₹) <span class="required-star">*</span></label><input type="number" step="0.01" min="0" class="form-control" id="chitValue" required></div>
+            <div class="col-md-6"><label class="form-label">Monthly Installment (₹) <span class="required-star">*</span></label><input type="number" step="0.01" min="0" class="form-control" id="chitMonthly" required></div>
+            <div class="col-md-6"><label class="form-label">Duration (months)</label><input type="number" min="1" class="form-control" id="chitDuration" placeholder="e.g. 20"></div>
+            <div class="col-md-6"><label class="form-label">Start Date</label><input type="date" class="form-control" id="chitStartDate"></div>
+            <div class="col-md-6"><label class="form-label">Status</label>
+              <select class="form-select" id="chitStatus"><option>Active</option><option>Completed</option><option>Closed</option></select>
+            </div>
+            <div class="col-12"><label class="form-label">Notes</label><textarea class="form-control" id="chitNotes" rows="2"></textarea></div>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline-app" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-marigold"><i class="fa-solid fa-floppy-disk me-1"></i>Save Chit</button>
+          <button type="button" class="btn btn-marigold" onclick="saveChit()"><i class="fa-solid fa-floppy-disk me-1"></i>Save Chit</button>
         </div>
       </form>
     </div>
   </div>
 </div>
 
-<!-- CHIT PAYMENT MODAL -->
+<!-- CHIT INSTALLMENT MODAL -->
 <div class="modal fade" id="chitPaymentModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title">Record Chit Installment</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title" id="chitPayModalTitle">Record Installment</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <form id="chitPaymentForm">
         <div class="modal-body">
+          <input type="hidden" id="chitPayRecId">
           <input type="hidden" id="chitPayId">
-          <div class="mb-3"><label class="form-label">Date</label><input type="date" class="form-control" id="chitPayDate" required></div>
-          <div class="mb-3"><label class="form-label">Amount <span class="required-star">*</span></label><input type="number" step="0.01" min="0" class="form-control" id="chitPayAmount" required></div>
+          <div class="row g-3">
+            <div class="col-12"><label class="form-label">Chit</label><select class="form-select" id="chitPayChitSelect"></select></div>
+            <div class="col-md-6"><label class="form-label">Payment Date <span class="required-star">*</span></label><input type="date" class="form-control" id="chitPayDate" required></div>
+            <div class="col-md-6"><label class="form-label">Installment No.</label><input type="number" class="form-control" id="chitPayInstNo" placeholder="Auto" min="1"></div>
+            <div class="col-md-6"><label class="form-label">Amount (₹) <span class="required-star">*</span></label><input type="number" step="0.01" min="0" class="form-control" id="chitPayAmount" required></div>
+            <div class="col-md-6"><label class="form-label">Payment Mode</label>
+              <select class="form-select" id="chitPayMode"><option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option></select>
+            </div>
+            <div class="col-12"><label class="form-label">Notes</label><input type="text" class="form-control" id="chitPayNotes" placeholder="Optional remarks"></div>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline-app" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-marigold">Record Payment</button>
+          <button type="button" class="btn btn-marigold" onclick="saveChitPayment()"><i class="fa-solid fa-floppy-disk me-1"></i>Record Payment</button>
         </div>
       </form>
     </div>
@@ -2911,11 +3158,12 @@ function loadDB(){
 const DB_TO_SHEET = {
   customers:'Customers', services:'Services', invoices:'ServiceInvoices',
   income:'Income', expense:'Expense', loans:'Loans', emiPayments:'EMI',
-  chits:'Chits', inventory:'Inventory', staff:'Staff', attendance:'Attendance',
+  chits:'Chits', chitPayments:'Chits', bankTxns:'Bank', cashbookManual:'Cashbook',
+  inventory:'Inventory', staff:'Staff', attendance:'Attendance',
   payroll:'Payroll', leads:'Leads', reminders:'Reminders', documents:'Documents',
   tasks:'Tasks', machines:'Machines', printerReadings:'PrinterReadings',
   machineServices:'MachineService', maintenanceSchedule:'Maintenance',
-  auditLog:'AuditLogs', notifications:'Notifications',
+  auditLog:'AuditLogs', notifications:'Notifications', serviceInvoices:'ServiceInvoices',
 };
 
 // Snapshot of last-saved state per collection (uuid→updatedAt)
@@ -3256,8 +3504,12 @@ const NUMERIC_FIELDS = {
   printerReadings:['id','customerId','previousReading','currentReading','totalCopies','dueReading','ratePerCopy','billAmount'],
   machineServices:['id','machineId','labourCharge','spareCost'],
   maintenanceSchedule:['id','machineId'],
-  notifications:['id'],
-  auditLog:    ['id'],
+  notifications:   ['id'],
+  auditLog:        ['id'],
+  bankTxns:        ['id','amount'],
+  cashbookManual:  ['id','amount'],
+  chitPayments:    ['id','chitId','amount','installmentNo'],
+  serviceInvoices: ['id','customerId','subtotal','gstPct','gstAmount','discount','total','paid','balance'],
 };
 
 function applyCloudDelta(remoteData){
@@ -3267,9 +3519,10 @@ function applyCloudDelta(remoteData){
   // Cloud sheet name → local DB key
   const MAP = {
     Customers:'customers', Services:'services',
-    ServiceInvoices:'invoices',   // stored as DB.invoices locally
+    ServiceInvoices:'serviceInvoices',
     Income:'income', Expense:'expense',
-    Loans:'loans', EMI:'emiPayments', Chits:'chits',
+    Loans:'loans', EMI:'emiPayments',
+    Chits:'chits', Cashbook:'cashbookManual', Bank:'bankTxns',
     Inventory:'inventory', Staff:'staff', Attendance:'attendance',
     Payroll:'payroll', Leads:'leads', Reminders:'reminders',
     Documents:'documents', Tasks:'tasks', Machines:'machines',
@@ -3400,9 +3653,10 @@ async function pushAllLocalData(){
   syncInFlight=true; setSyncStatus('syncing');
   // Build changes object from all local collections
   const PUSH_MAP = {
-    Customers:'customers', Services:'services', ServiceInvoices:'invoices',
+    Customers:'customers', Services:'services', ServiceInvoices:'serviceInvoices',
     Income:'income', Expense:'expense', Loans:'loans', EMI:'emiPayments',
-    Chits:'chits', Inventory:'inventory', Staff:'staff', Attendance:'attendance',
+    Chits:'chits', Cashbook:'cashbookManual', Bank:'bankTxns',
+    Inventory:'inventory', Staff:'staff', Attendance:'attendance',
     Payroll:'payroll', Leads:'leads', Reminders:'reminders',
     Documents:'documents', Tasks:'tasks', Machines:'machines',
     PrinterReadings:'printerReadings', MachineService:'machineServices',
@@ -3609,7 +3863,7 @@ function checkEMIDueAlerts(){
     const diff=daysFromToday(loan.nextDueDate);
     if(diff<=7 && diff>=0){
       const exists=(DB.notifications||[]).find(n=>n.type==='EMIDue'&&n.refId===String(loan.uuid||loan.id)&&n.createdAt&&n.createdAt.slice(0,10)===today);
-      if(!exists) addNotification('EMIDue',`EMI Due: ${loan.name}`,`₹${fmtMoney(loan.emiAmount)} due on ${fmtDate(loan.nextDueDate)}`,'High','Loans',String(loan.uuid||loan.id));
+      if(!exists) addNotification('EMIDue',`EMI Due: ${loan.name}`,`${fmtMoney(loan.emiAmount)} due on ${fmtDate(loan.nextDueDate)}`,'High','Loans',String(loan.uuid||loan.id));
     }
   });
 }
@@ -3651,8 +3905,10 @@ function fmtDate(d){
   return dt.toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
 }
 function fmtDateTime(ts){
+  if(!ts) return '—';
   const dt = new Date(ts);
-  return dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) + ' ' + dt.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  if(isNaN(dt)) return '—';
+  return dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
 }
 function todayStr(){
   const d = new Date();
@@ -3949,9 +4205,20 @@ window.addEventListener('DOMContentLoaded', function(){
   if(DB){
     if(!Array.isArray(DB.notifications))    DB.notifications    = [];
     if(!Array.isArray(DB.serviceInvoices))  DB.serviceInvoices  = [];
+    if(!Array.isArray(DB.bankTxns))         DB.bankTxns         = [];
+    if(!Array.isArray(DB.cashbookManual))   DB.cashbookManual   = [];
+    if(!Array.isArray(DB.chitPayments))     DB.chitPayments     = [];
+    if(!Array.isArray(DB.emiPayments))      DB.emiPayments      = [];
     if(!DB.meta)                            DB.meta             = {};
-    if(!DB.meta.nextSInvId)                 DB.meta.nextSInvId  = 1;
+    if(!DB.meta.nextSInvId)                 DB.meta.nextSInvId      = 1;
     if(!DB.meta.sInvoiceCounter)            DB.meta.sInvoiceCounter = 1;
+    if(!DB.meta.nextBankTxnId)              DB.meta.nextBankTxnId   = 1;
+    if(!DB.meta.nextCbManualId)             DB.meta.nextCbManualId  = 1;
+    if(!DB.meta.nextEmiId)                  DB.meta.nextEmiId       = 1;
+    if(!DB.meta.nextChitId)                 DB.meta.nextChitId      = 1;
+    if(!DB.meta.nextChitPayId)              DB.meta.nextChitPayId   = 1;
+    if(!DB.bank)                            DB.bank                 = {openingBalance:0};
+    if(!DB.cashbook)                        DB.cashbook             = {openingBalance:0};
   }
   // Build initial snapshot so saveDB diffs work correctly from first save
   if(typeof _buildSnapshot==='function') _dbSnapshot = _buildSnapshot();
@@ -5346,408 +5613,919 @@ function convertLeadToCustomer(id){
 /* ====================================================================
    INCOME MODULE
 ==================================================================== */
+/* ====================================================================
+   FINANCE MODULE — UNIFIED ENGINE
+   Covers: Income, Expense, Cashbook, Bank, Loans/EMI, Chits
+   Each module has:
+   • Date quick-filters (Today / Week / Month / Year / Custom)
+   • Full CRUD (Add, Edit, Delete)
+   • KPI summary cards
+   • Google Sheets sync via saveDB() auto-diff
+==================================================================== */
+
+// ── Date Quick-Filter Engine ─────────────────────────────────────────────
+const _financeFilters = {}; // namespace → {mode, from, to}
+
+function setFinanceQuickFilter(ns, mode, btn){
+  // Update active button
+  const parent = btn?.parentElement;
+  if(parent) parent.querySelectorAll('.btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+
+  const today = todayStr();
+  const now   = new Date();
+  let from='', to='';
+
+  if(mode==='today'){
+    from = to = today;
+  } else if(mode==='week'){
+    const d   = new Date(now);
+    d.setDate(d.getDate() - d.getDay() + 1); // Mon
+    from = d.toISOString().slice(0,10);
+    to   = today;
+  } else if(mode==='month'){
+    from = today.slice(0,7)+'-01';
+    to   = today;
+  } else if(mode==='year'){
+    from = today.slice(0,4)+'-01-01';
+    to   = today;
+  } else if(mode==='custom'){
+    const cr = document.getElementById(ns+'CustomRange');
+    if(cr) cr.style.display='';
+    _financeFilters[ns] = {mode:'custom', from:'', to:''};
+    return;
+  } else { // all
+    from = to = '';
+  }
+
+  const cr = document.getElementById(ns+'CustomRange');
+  if(cr) cr.style.display='none';
+  _financeFilters[ns] = {mode, from, to};
+
+  // Apply filter to the right module
+  const renderMap = {inc:renderIncome, exp:renderExpense, cb:renderCashbook, bk:renderBank, emi:renderEMIHistory, chit:renderChitInstHistory};
+  if(renderMap[ns]) renderMap[ns]();
+}
+
+function _getDateFilter(ns){
+  const f = _financeFilters[ns];
+  if(!f || f.mode==='all' || f.mode===undefined) return {from:'', to:''};
+  if(f.mode==='custom'){
+    return {
+      from: document.getElementById(ns+'From')?.value || '',
+      to:   document.getElementById(ns+'To')?.value   || ''
+    };
+  }
+  return {from: f.from||'', to: f.to||''};
+}
+
+function _applyDateFilter(list, ns, dateField='date'){
+  const {from, to} = _getDateFilter(ns);
+  if(from) list = list.filter(r=>(r[dateField]||'')>=from);
+  if(to)   list = list.filter(r=>(r[dateField]||'')<=to);
+  return list;
+}
+
+// ── KPI Card Builder ──────────────────────────────────────────────────────
+function renderFinanceKpi(containerId, cards){
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  el.innerHTML = cards.map(c=>`
+    <div class="kpi-card kpi-tone-${c.tone||'info'}">
+      <div class="kpi-top"><div class="kpi-icon"><i class="fa-solid ${c.icon}"></i></div></div>
+      <div class="kpi-label">${c.label}</div>
+      <div class="kpi-value">${c.value}</div>
+      ${c.sub?`<div class="kpi-sub">${c.sub}</div>`:''}
+    </div>`).join('');
+}
+
+/* ====================================================================
+   INCOME MODULE
+==================================================================== */
 function renderIncome(){
-  let list = [...DB.income];
-  const q = (document.getElementById('incSearch').value||'').toLowerCase();
-  if(q) list = list.filter(i => (i.customerName||'').toLowerCase().includes(q) || (i.service||'').toLowerCase().includes(q));
-  const from = document.getElementById('incFrom').value, to = document.getElementById('incTo').value;
-  if(from) list = list.filter(i=>i.date>=from);
-  if(to) list = list.filter(i=>i.date<=to);
-  const modeF = document.getElementById('incModeFilter').value;
+  if(!DB) return;
+  let list = [...(DB.income||[])];
+  const q = (document.getElementById('incSearch')?.value||'').toLowerCase();
+  if(q) list = list.filter(i=>(i.customerName||'').toLowerCase().includes(q)||(i.service||'').toLowerCase().includes(q)||(i.notes||'').toLowerCase().includes(q));
+  const modeF = document.getElementById('incModeFilter')?.value||'';
   if(modeF) list = list.filter(i=>i.mode===modeF);
-  list.sort((a,b)=> a.date<b.date?1:a.date>b.date?-1:b.id-a.id);
+  list = _applyDateFilter(list,'inc');
+  list.sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:b.id-a.id);
+
+  // KPIs
+  const total   = list.reduce((s,i)=>s+Number(i.amount||0),0);
+  const cash    = list.filter(i=>i.mode==='Cash').reduce((s,i)=>s+Number(i.amount||0),0);
+  const upi     = list.filter(i=>i.mode!=='Cash').reduce((s,i)=>s+Number(i.amount||0),0);
+  const autoAmt = list.filter(i=>i.autoGenerated).reduce((s,i)=>s+Number(i.amount||0),0);
+  renderFinanceKpi('incKpiGrid',[
+    {icon:'fa-arrow-trend-up',tone:'success',label:'Total Income',   value:fmtMoney(total)},
+    {icon:'fa-money-bill-wave',tone:'info',   label:'Cash',          value:fmtMoney(cash)},
+    {icon:'fa-mobile-screen',  tone:'teal',   label:'UPI / Bank',    value:fmtMoney(upi)},
+    {icon:'fa-robot',          tone:'marigold',label:'Auto (Service)',value:fmtMoney(autoAmt),sub:list.filter(i=>i.autoGenerated).length+' entries'},
+  ]);
 
   const body = document.getElementById('incomeBody');
-  document.getElementById('incomeEmpty').classList.toggle('d-none', list.length>0);
+  if(!body) return;
+  document.getElementById('incomeEmpty')?.classList.toggle('d-none', list.length>0);
+  const modeCls = {Cash:'bs-cash',UPI:'bs-upi','Bank Transfer':'bs-completed',Cheque:'bs-applied'};
   body.innerHTML = list.map(i=>`
     <tr>
       <td>${fmtDate(i.date)}</td>
       <td>${escapeHtml(i.customerName||'General')}</td>
-      <td>${escapeHtml(i.service||'—')} ${i.autoGenerated?'<span class="badge-status bs-applied" style="font-size:9.5px;">Auto</span>':''}</td>
-      <td><span class="badge-status ${i.mode==='Cash'?'bs-cash':'bs-upi'}">${i.mode}</span></td>
-      <td class="text-end mono up-text">+${fmtMoney(i.amount)}</td>
+      <td>${escapeHtml(i.service||'—')} ${i.autoGenerated?'<span class="badge-status bs-applied" style="font-size:9px;">Auto</span>':''}</td>
+      <td><span class="badge-status ${modeCls[i.mode]||'bs-upi'}">${escapeHtml(i.mode||'')}</span></td>
+      <td class="text-end mono up-text fw-bold">+${fmtMoney(i.amount)}</td>
       <td class="text-end">
-        ${i.autoGenerated ? `<span style="font-size:11px;color:var(--text-3);" title="Edit from Services module">linked to service</span>` : `
-        <button class="btn btn-outline-app btn-icon-sq" title="Edit" onclick="openIncomeModal(${i.id})"><i class="fa-solid fa-pen"></i></button>
-        <button class="btn btn-ghost-danger btn-icon-sq" title="Delete" onclick="deleteIncome(${i.id})"><i class="fa-solid fa-trash"></i></button>`}
+        ${i.autoGenerated
+          ? `<span style="font-size:11px;color:var(--text-3);">linked to service</span>`
+          : `<button class="btn btn-outline-app btn-icon-sq" onclick="openIncomeModal(${i.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
+             <button class="btn btn-ghost-danger btn-icon-sq" onclick="deleteIncome(${i.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>`}
       </td>
     </tr>`).join('');
-  document.getElementById('incomeTotalFooter').textContent = fmtMoney(list.reduce((s,i)=>s+i.amount,0));
+  if(document.getElementById('incomeTotalFooter'))
+    document.getElementById('incomeTotalFooter').textContent = fmtMoney(total);
+  if(document.getElementById('incCountLabel'))
+    document.getElementById('incCountLabel').textContent = list.length+' records';
 }
-['incSearch','incFrom','incTo','incModeFilter'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', renderIncome);
-  document.getElementById(id).addEventListener('change', renderIncome);
+
+['incSearch','incModeFilter','incFrom','incTo'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('input',  renderIncome);
+  document.getElementById(id)?.addEventListener('change', renderIncome);
 });
 
 function openIncomeModal(id){
   const form = document.getElementById('incomeForm');
-  form.reset();
+  form?.reset();
+  populateAllDropdowns();
   document.getElementById('incId').value='';
   document.getElementById('incLinkedService').value='';
-  populateAllDropdowns();
   if(id){
-    const i = DB.income.find(x=>x.id===id);
-    if(!i || i.autoGenerated) return;
+    const i = (DB.income||[]).find(x=>x.id===id);
+    if(!i||i.autoGenerated) return;
     document.getElementById('incomeModalTitle').textContent='Edit Income';
-    document.getElementById('incId').value=i.id;
-    document.getElementById('incDate').value=i.date;
-    document.getElementById('incCustomer').value=i.customerId||'';
-    document.getElementById('incService').value=i.service||'';
-    document.getElementById('incAmount').value=i.amount;
-    document.getElementById('incMode').value=i.mode;
-  }else{
+    document.getElementById('incId').value       = i.id;
+    document.getElementById('incDate').value     = i.date||'';
+    document.getElementById('incCustomer').value = i.customerId||'';
+    document.getElementById('incService').value  = i.service||'';
+    document.getElementById('incAmount').value   = i.amount||0;
+    document.getElementById('incMode').value     = i.mode||'Cash';
+    if(document.getElementById('incNotes')) document.getElementById('incNotes').value = i.notes||'';
+  } else {
     document.getElementById('incomeModalTitle').textContent='Add Income';
-    document.getElementById('incDate').value=todayStr();
+    document.getElementById('incDate').value = todayStr();
   }
   new bootstrap.Modal(document.getElementById('incomeModal')).show();
 }
 
-document.getElementById('incomeForm').addEventListener('submit', function(e){
-  e.preventDefault();
-  const id = document.getElementById('incId').value;
-  const customerId = document.getElementById('incCustomer').value;
-  const customer = customerId ? DB.customers.find(c=>c.id===Number(customerId)) : null;
+function saveIncome(){
+  const id         = (document.getElementById('incId')||{}).value||'';
+  const customerId = (document.getElementById('incCustomer')||{}).value||'';
+  const dateVal    = (document.getElementById('incDate')||{}).value||'';
+  const service    = ((document.getElementById('incService')||{}).value||'').trim();
+  const amount     = Number((document.getElementById('incAmount')||{}).value)||0;
+  const mode       = (document.getElementById('incMode')||{}).value||'Cash';
+  const notes      = ((document.getElementById('incNotes')||{}).value||'').trim();
+  // Validation
+  if(!dateVal)  { showToast('Required','Please select a date.','danger'); return; }
+  if(!service)  { showToast('Required','Please enter service / description.','danger'); return; }
+  if(amount<=0) { showToast('Required','Please enter a valid amount.','danger'); return; }
+  const customer = customerId ? (DB.customers||[]).find(c=>c.id===Number(customerId)) : null;
+  const now = new Date().toISOString();
   const data = {
-    date: document.getElementById('incDate').value,
-    customerId: customer?customer.id:'', customerName: customer?customer.name:'',
-    service: document.getElementById('incService').value.trim(),
-    amount: Number(document.getElementById('incAmount').value)||0,
-    mode: document.getElementById('incMode').value
+    date: dateVal, customerId: customer?.id||'', customerName: customer?.name||'General',
+    service, amount, mode, notes, updatedAt: now,
   };
-  if(id){ Object.assign(DB.income.find(x=>x.id===Number(id)), data); logAudit('Edit','Income',`Updated income entry ₹${data.amount}`); }
-  else{ data.id = DB.meta.nextIncId++; DB.income.push(data); logAudit('Add','Income',`Added income ₹${data.amount} (${data.mode})`); }
+  if(!DB.income) DB.income=[];
+  if(id){
+    const rec = DB.income.find(x=>x.id===Number(id));
+    if(!rec){ showToast('Error','Record not found.','danger'); return; }
+    if(!rec.uuid) rec.uuid=generateUUID();
+    Object.assign(rec, data);
+    logAudit('Edit','Income','Updated '+fmtMoney(data.amount)+' ('+data.mode+')');
+    showToast('Income Updated',fmtMoney(data.amount)+' via '+data.mode,'success');
+  } else {
+    if(!DB.meta.nextIncId) DB.meta.nextIncId=1;
+    data.id=DB.meta.nextIncId++; data.uuid=generateUUID(); data.createdAt=now;
+    DB.income.push(data);
+    logAudit('Add','Income','Added '+fmtMoney(data.amount)+' ('+data.mode+')');
+    showToast('Income Saved',fmtMoney(data.amount)+' via '+data.mode,'success');
+  }
   saveDB(); renderIncome();
-  showToast('Income Saved', fmtMoney(data.amount)+' via '+data.mode, 'success');
-  bootstrap.Modal.getInstance(document.getElementById('incomeModal')).hide();
-});
+  const modal=document.getElementById('incomeModal');
+  if(modal) bootstrap.Modal.getInstance(modal)?.hide();
+}
+// Keep form submit as backup
+try{ document.getElementById('incomeForm')?.addEventListener('submit',function(e){e.preventDefault();saveIncome();}); }catch(e){}
 
 function deleteIncome(id){
-  const i = DB.income.find(x=>x.id===id);
+  const i = (DB.income||[]).find(x=>x.id===id);
   if(!i) return;
-  if(i.autoGenerated){ showToast('Cannot Delete','This income is auto-linked to a Service. Edit/delete it from the Services module instead.','warning'); return; }
-  showConfirm('Delete Income?', `Delete this income entry of ${fmtMoney(i.amount)}?`, function(){
+  if(i.autoGenerated){ showToast('Cannot Delete','This income is linked to a Service. Delete from the Services module.','warning'); return; }
+  showConfirm('Delete Income?',`Delete ${fmtMoney(i.amount)} on ${fmtDate(i.date)}?`, ()=>{
+    i._deleted=true; i.updatedAt=new Date().toISOString();
+    queueOfflineChange('Income', Object.assign({},i));
     DB.income = DB.income.filter(x=>x.id!==id);
-    logAudit('Delete','Income',`Deleted income entry ₹${i.amount}`);
+    logAudit('Delete','Income',`Deleted ₹${i.amount}`);
     saveDB(); renderIncome();
-    showToast('Income Deleted','Removed successfully.','success');
+    showToast('Deleted','Income entry removed.','success');
   });
 }
 
 /* ====================================================================
    EXPENSE MODULE
-   Logic: Cash Expense -> reduces Cashbook; UPI Expense -> reduces Bank
-   (handled automatically by buildCashLedger/buildBankLedger filters)
 ==================================================================== */
 function renderExpense(){
-  // populate category filter
-  const cats = [...new Set(DB.expense.map(e=>e.category))].sort();
+  if(!DB) return;
+  // Populate category filter
+  const cats   = [...new Set((DB.expense||[]).map(e=>e.category))].filter(Boolean).sort();
   const catSel = document.getElementById('expCategoryFilter');
-  const curVal = catSel.value;
-  catSel.innerHTML = '<option value="">All Categories</option>' + cats.map(c=>`<option ${c===curVal?'selected':''}>${escapeHtml(c)}</option>`).join('');
+  if(catSel){ const cur=catSel.value; catSel.innerHTML='<option value="">All Categories</option>'+cats.map(c=>`<option${c===cur?' selected':''}>${escapeHtml(c)}</option>`).join(''); }
 
-  let list = [...DB.expense];
-  const q = (document.getElementById('expSearch').value||'').toLowerCase();
-  if(q) list = list.filter(e => (e.category||'').toLowerCase().includes(q) || (e.description||'').toLowerCase().includes(q));
-  const catF = document.getElementById('expCategoryFilter').value;
+  let list = [...(DB.expense||[])];
+  const q = (document.getElementById('expSearch')?.value||'').toLowerCase();
+  if(q) list = list.filter(e=>(e.category||'').toLowerCase().includes(q)||(e.description||'').toLowerCase().includes(q));
+  const catF  = document.getElementById('expCategoryFilter')?.value||'';
   if(catF) list = list.filter(e=>e.category===catF);
-  const modeF = document.getElementById('expModeFilter').value;
+  const modeF = document.getElementById('expModeFilter')?.value||'';
   if(modeF) list = list.filter(e=>e.mode===modeF);
-  list.sort((a,b)=> a.date<b.date?1:a.date>b.date?-1:b.id-a.id);
+  list = _applyDateFilter(list,'exp');
+  list.sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:b.id-a.id);
+
+  const total = list.reduce((s,e)=>s+Number(e.amount||0),0);
+  const cash  = list.filter(e=>e.mode==='Cash').reduce((s,e)=>s+Number(e.amount||0),0);
+  const upi   = list.filter(e=>e.mode!=='Cash').reduce((s,e)=>s+Number(e.amount||0),0);
+  renderFinanceKpi('expKpiGrid',[
+    {icon:'fa-arrow-trend-down',tone:'danger',  label:'Total Expense', value:fmtMoney(total)},
+    {icon:'fa-money-bill-wave', tone:'info',    label:'Cash Spent',    value:fmtMoney(cash)},
+    {icon:'fa-mobile-screen',   tone:'teal',    label:'UPI / Bank',    value:fmtMoney(upi)},
+    {icon:'fa-layer-group',     tone:'marigold',label:'Categories',    value:cats.length, sub:list.length+' entries'},
+  ]);
 
   const body = document.getElementById('expenseBody');
-  document.getElementById('expenseEmpty').classList.toggle('d-none', list.length>0);
+  if(!body) return;
+  document.getElementById('expenseEmpty')?.classList.toggle('d-none', list.length>0);
+  const modeCls = {Cash:'bs-cash',UPI:'bs-upi','Bank Transfer':'bs-completed',Cheque:'bs-applied'};
   body.innerHTML = list.map(e=>`
     <tr>
       <td>${fmtDate(e.date)}</td>
-      <td><span style="font-weight:700;">${escapeHtml(e.category)}</span></td>
+      <td><strong>${escapeHtml(e.category||'')}</strong></td>
       <td>${escapeHtml(e.description||'—')}</td>
-      <td><span class="badge-status ${e.mode==='Cash'?'bs-cash':'bs-upi'}">${e.mode}</span></td>
-      <td class="text-end mono down-text">-${fmtMoney(e.amount)}</td>
+      <td><span class="badge-status ${modeCls[e.mode]||'bs-upi'}">${escapeHtml(e.mode||'')}</span></td>
+      <td class="text-end mono down-text fw-bold">-${fmtMoney(e.amount)}</td>
       <td class="text-end">
-        <button class="btn btn-outline-app btn-icon-sq" title="Edit" onclick="openExpenseModal(${e.id})"><i class="fa-solid fa-pen"></i></button>
-        <button class="btn btn-ghost-danger btn-icon-sq" title="Delete" onclick="deleteExpense(${e.id})"><i class="fa-solid fa-trash"></i></button>
+        <button class="btn btn-outline-app btn-icon-sq" onclick="openExpenseModal(${e.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn btn-ghost-danger btn-icon-sq" onclick="deleteExpense(${e.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
       </td>
     </tr>`).join('');
-  document.getElementById('expenseTotalFooter').textContent = fmtMoney(list.reduce((s,e)=>s+e.amount,0));
+  if(document.getElementById('expenseTotalFooter'))
+    document.getElementById('expenseTotalFooter').textContent = fmtMoney(total);
+  if(document.getElementById('expCountLabel'))
+    document.getElementById('expCountLabel').textContent = list.length+' records';
 }
-['expSearch','expCategoryFilter','expModeFilter'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', renderExpense);
-  document.getElementById(id).addEventListener('change', renderExpense);
+
+['expSearch','expCategoryFilter','expModeFilter','expFrom','expTo'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('input',  renderExpense);
+  document.getElementById(id)?.addEventListener('change', renderExpense);
 });
 
 function openExpenseModal(id){
-  const form = document.getElementById('expenseForm');
-  form.reset();
+  document.getElementById('expenseForm')?.reset();
   document.getElementById('expId').value='';
   if(id){
-    const x = DB.expense.find(e=>e.id===id);
+    const x = (DB.expense||[]).find(e=>e.id===id);
     if(!x) return;
     document.getElementById('expenseModalTitle').textContent='Edit Expense';
-    document.getElementById('expId').value=x.id;
-    document.getElementById('expDate').value=x.date;
-    document.getElementById('expCategory').value=x.category;
-    document.getElementById('expAmount').value=x.amount;
-    document.getElementById('expMode').value=x.mode;
-    document.getElementById('expDescription').value=x.description||'';
-  }else{
+    document.getElementById('expId').value         = x.id;
+    document.getElementById('expDate').value        = x.date||'';
+    document.getElementById('expCategory').value   = x.category||'';
+    document.getElementById('expAmount').value      = x.amount||0;
+    document.getElementById('expMode').value        = x.mode||'Cash';
+    document.getElementById('expDescription').value = x.description||'';
+  } else {
     document.getElementById('expenseModalTitle').textContent='Add Expense';
-    document.getElementById('expDate').value=todayStr();
+    document.getElementById('expDate').value = todayStr();
   }
   new bootstrap.Modal(document.getElementById('expenseModal')).show();
 }
 
-document.getElementById('expenseForm').addEventListener('submit', function(e){
-  e.preventDefault();
-  const id = document.getElementById('expId').value;
-  const mode = document.getElementById('expMode').value;
-  const amount = Number(document.getElementById('expAmount').value)||0;
-  // balance check
-  const available = mode==='Cash' ? getCashBalance() : getBankBalance();
-  const prevAmount = id ? (DB.expense.find(x=>x.id===Number(id)).mode===mode ? DB.expense.find(x=>x.id===Number(id)).amount : 0) : 0;
-  if((available + prevAmount) < amount){
-    showToast('Insufficient Balance', `${mode} balance is only ${fmtMoney(available+prevAmount)}. Expense not blocked, but please verify.`, 'warning');
+function saveExpense(){
+  const id       = ((document.getElementById('expId')||{}).value||'');
+  const dateVal  = ((document.getElementById('expDate')||{}).value||'');
+  const category = (((document.getElementById('expCategory')||{}).value)||'').trim();
+  const amount   = Number((document.getElementById('expAmount')||{}).value)||0;
+  const mode     = ((document.getElementById('expMode')||{}).value)||'Cash';
+  const desc     = (((document.getElementById('expDescription')||{}).value)||'').trim();
+  // Validation
+  if(!dateVal)    { showToast('Required','Please select a date.','danger'); return; }
+  if(!category)   { showToast('Required','Please enter a category.','danger'); return; }
+  if(amount<=0)   { showToast('Required','Please enter a valid amount.','danger'); return; }
+  // Balance warning
+  if(!id){
+    try{
+      const avail = mode==='Cash' ? getCashBalance() : getBankBalance();
+      if(avail < amount) showToast('Low Balance','Balance: '+fmtMoney(avail)+'. Saving anyway.','warning');
+    }catch(e){}
   }
-  const data = {
-    date: document.getElementById('expDate').value,
-    category: document.getElementById('expCategory').value.trim(),
-    amount, mode,
-    description: document.getElementById('expDescription').value.trim()
-  };
-  if(id){ Object.assign(DB.expense.find(x=>x.id===Number(id)), data); logAudit('Edit','Expense',`Updated expense "${data.category}" ₹${data.amount}`); }
-  else{ data.id = DB.meta.nextExpId++; DB.expense.push(data); logAudit('Add','Expense',`Added expense "${data.category}" ₹${data.amount} (${mode})`); }
+  const now = new Date().toISOString();
+  const data = { date:dateVal, category, amount, mode, description:desc, updatedAt:now };
+  if(!DB.expense) DB.expense=[];
+  if(id){
+    const rec = DB.expense.find(x=>x.id===Number(id));
+    if(!rec){ showToast('Error','Record not found.','danger'); return; }
+    if(!rec.uuid) rec.uuid=generateUUID();
+    Object.assign(rec, data);
+    logAudit('Edit','Expense','Updated "'+category+'" '+fmtMoney(amount));
+    showToast('Expense Updated',category+' — '+fmtMoney(amount),'success');
+  } else {
+    if(!DB.meta.nextExpId) DB.meta.nextExpId=1;
+    data.id=DB.meta.nextExpId++; data.uuid=generateUUID(); data.createdAt=now;
+    DB.expense.push(data);
+    logAudit('Add','Expense','Added "'+category+'" '+fmtMoney(amount)+' ('+mode+')');
+    showToast('Expense Saved',category+' — '+fmtMoney(amount),'success');
+  }
   saveDB(); renderExpense();
-  showToast('Expense Saved', data.category+' — '+fmtMoney(data.amount), 'success');
-  bootstrap.Modal.getInstance(document.getElementById('expenseModal')).hide();
-});
+  const modal=document.getElementById('expenseModal');
+  if(modal) bootstrap.Modal.getInstance(modal)?.hide();
+}
+try{ document.getElementById('expenseForm')?.addEventListener('submit',function(e){e.preventDefault();saveExpense();}); }catch(e){}
 
 function deleteExpense(id){
-  const x = DB.expense.find(e=>e.id===id);
+  const x = (DB.expense||[]).find(e=>e.id===id);
   if(!x) return;
-  showConfirm('Delete Expense?', `Delete expense "${x.category}" of ${fmtMoney(x.amount)}?`, function(){
+  showConfirm('Delete Expense?',`Delete "${x.category}" ${fmtMoney(x.amount)}?`, ()=>{
+    x._deleted=true; x.updatedAt=new Date().toISOString();
+    queueOfflineChange('Expense', Object.assign({},x));
     DB.expense = DB.expense.filter(e=>e.id!==id);
-    logAudit('Delete','Expense',`Deleted expense "${x.category}" ₹${x.amount}`);
+    logAudit('Delete','Expense',`Deleted "${x.category}" ₹${x.amount}`);
     saveDB(); renderExpense();
-    showToast('Expense Deleted','Removed successfully.','success');
+    showToast('Deleted','Expense removed.','success');
   });
 }
+
 /* ====================================================================
    CASHBOOK MODULE
 ==================================================================== */
 function renderCashbook(){
+  if(!DB) return;
   const sum = getCashSummary();
-  document.getElementById('cbOpening').textContent = fmtMoney(sum.opening);
-  document.getElementById('cbIncome').textContent = fmtMoney(sum.income);
-  document.getElementById('cbExpense').textContent = fmtMoney(sum.expense);
-  document.getElementById('cbClosing').textContent = fmtMoney(sum.closing);
+  if(document.getElementById('cbOpening'))  document.getElementById('cbOpening').textContent  = fmtMoney(sum.opening);
+  if(document.getElementById('cbIncome'))   document.getElementById('cbIncome').textContent   = fmtMoney(sum.income);
+  if(document.getElementById('cbExpense'))  document.getElementById('cbExpense').textContent  = fmtMoney(sum.expense);
+  if(document.getElementById('cbClosing'))  document.getElementById('cbClosing').textContent  = fmtMoney(sum.closing);
 
-  let running = sum.opening;
+  // Apply filters
+  let rows = [...sum.rows];
+  const q    = (document.getElementById('cbSearch')?.value||'').toLowerCase();
+  const typeF= document.getElementById('cbTypeFilter')?.value||'';
+  if(q)     rows = rows.filter(r=>(r.detail||'').toLowerCase().includes(q));
+  if(typeF) rows = rows.filter(r=>r.type===typeF);
+  rows = _applyDateFilter(rows,'cb');
+
   const body = document.getElementById('cashbookBody');
-  document.getElementById('cashbookEmpty').classList.toggle('d-none', sum.rows.length>0);
-  let rowsHtml = `<tr style="background:var(--surface-2);"><td>${fmtDate(todayStr())}</td><td colspan="2"><strong>Opening Balance</strong></td><td class="text-end">—</td><td class="text-end">—</td><td class="text-end mono"><strong>${fmtMoney(sum.opening)}</strong></td></tr>`;
-  rowsHtml += sum.rows.map(r=>{
-    running += r.in - r.out;
+  if(!body) return;
+  document.getElementById('cashbookEmpty')?.classList.toggle('d-none', rows.length>0 || sum.opening>0);
+  let running = sum.opening;
+  // Opening row
+  let html = `<tr style="background:var(--surface-2);font-weight:700;">
+    <td>—</td><td colspan="2">Opening Balance</td>
+    <td class="text-end">—</td><td class="text-end">—</td>
+    <td class="text-end mono">${fmtMoney(sum.opening)}</td><td></td></tr>`;
+  html += rows.map(r=>{
+    running += Number(r.in||0) - Number(r.out||0);
+    const isManual = r.type==='Manual';
     return `<tr>
       <td>${fmtDate(r.date)}</td>
-      <td><span class="badge-status ${r.type==='Income'?'bs-completed':'bs-rejected'}">${r.type}</span></td>
-      <td>${escapeHtml(r.detail)}</td>
+      <td><span class="badge-status ${r.in?'bs-completed':'bs-rejected'}">${escapeHtml(r.type||'')}</span></td>
+      <td>${escapeHtml(r.detail||'')}</td>
       <td class="text-end mono up-text">${r.in?('+'+fmtMoney(r.in)):'—'}</td>
       <td class="text-end mono down-text">${r.out?('-'+fmtMoney(r.out)):'—'}</td>
-      <td class="text-end mono">${fmtMoney(running)}</td>
-    </tr>`;
+      <td class="text-end mono fw-bold">${fmtMoney(running)}</td>
+      <td class="text-end">${isManual
+        ? `<button class="btn btn-outline-app btn-icon-sq" onclick="editCashbookTxn('${r._id}')" title="Edit"><i class="fa-solid fa-pen"></i></button>
+           <button class="btn btn-ghost-danger btn-icon-sq" onclick="deleteCashbookTxn('${r._id}')" title="Delete"><i class="fa-solid fa-trash"></i></button>`
+        : `<span style="font-size:10px;color:var(--text-3);">${r.source||''}</span>`}
+      </td></tr>`;
   }).join('');
-  body.innerHTML = rowsHtml;
+  body.innerHTML = html;
+}
+
+['cbSearch','cbTypeFilter','cbFrom','cbTo'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('input',  renderCashbook);
+  document.getElementById(id)?.addEventListener('change', renderCashbook);
+});
+
+function openCashbookTxnModal(id){
+  document.getElementById('cashbookTxnForm')?.reset();
+  document.getElementById('cbTxnId').value='';
+  document.getElementById('cbTxnDate').value = todayStr();
+  document.getElementById('cbTxnModalTitle').textContent = id ? 'Edit Cashbook Entry' : 'Add Cashbook Entry';
+  if(id){
+    const txn = (DB.cashbookManual||[]).find(x=>x.id===id||x.uuid===id);
+    if(txn){
+      document.getElementById('cbTxnId').value     = txn.id||txn.uuid;
+      document.getElementById('cbTxnDate').value   = txn.date||'';
+      document.getElementById('cbTxnType').value   = txn.type||'In';
+      document.getElementById('cbTxnDetail').value = txn.detail||'';
+      document.getElementById('cbTxnAmount').value = txn.amount||0;
+    }
+  }
+  new bootstrap.Modal(document.getElementById('cashbookTxnModal')).show();
+}
+
+function saveCashbookEntry(){
+  const id     = ((document.getElementById('cbTxnId')||{}).value||'');
+  const dateVal= ((document.getElementById('cbTxnDate')||{}).value||'');
+  const type   = ((document.getElementById('cbTxnType')||{}).value||'');
+  const detail = (((document.getElementById('cbTxnDetail')||{}).value)||'').trim();
+  const amount = Number((document.getElementById('cbTxnAmount')||{}).value)||0;
+  // Validation
+  if(!dateVal) { showToast('Required','Please select a date.','danger'); return; }
+  if(!type)    { showToast('Required','Please select type (Cash In / Cash Out).','danger'); return; }
+  if(!detail)  { showToast('Required','Please enter a description.','danger'); return; }
+  if(amount<=0){ showToast('Required','Please enter a valid amount.','danger'); return; }
+  const now = new Date().toISOString();
+  const data = { date:dateVal, type, detail, amount, updatedAt:now };
+  if(!DB.cashbookManual) DB.cashbookManual=[];
+  if(id){
+    const rec = DB.cashbookManual.find(x=>String(x.id)===String(id)||x.uuid===id);
+    if(rec){ Object.assign(rec, data); if(!rec.uuid) rec.uuid=generateUUID(); }
+    logAudit('Edit','Cashbook','Updated: '+detail);
+  } else {
+    if(!DB.meta.nextCbManualId) DB.meta.nextCbManualId=1;
+    data.id=DB.meta.nextCbManualId++; data.uuid=generateUUID(); data.createdAt=now;
+    DB.cashbookManual.push(data);
+    logAudit('Add','Cashbook','Manual entry: '+detail+' '+fmtMoney(amount));
+  }
+  saveDB(); renderCashbook();
+  showToast('Cashbook Entry Saved', detail+' — '+fmtMoney(amount), 'success');
+  const modal=document.getElementById('cashbookTxnModal');
+  if(modal) bootstrap.Modal.getInstance(modal)?.hide();
+}
+try{ document.getElementById('cashbookTxnForm')?.addEventListener('submit',function(e){e.preventDefault();saveCashbookEntry();}); }catch(e){}
+
+function editCashbookTxn(id){ openCashbookTxnModal(id); }
+function deleteCashbookTxn(id){
+  const x = (DB.cashbookManual||[]).find(r=>String(r.id)===String(id)||r.uuid===id);
+  if(!x) return;
+  showConfirm('Delete Entry?', `Delete "${x.detail}"?`, ()=>{
+    x._deleted=true; x.updatedAt=new Date().toISOString();
+    queueOfflineChange('Cashbook', Object.assign({},x));
+    DB.cashbookManual = DB.cashbookManual.filter(r=>String(r.id)!==String(id)&&r.uuid!==id);
+    saveDB(); renderCashbook();
+    showToast('Deleted','Entry removed.','success');
+  });
 }
 
 function openOpeningBalanceModal(){
-  document.getElementById('openingBalanceInput').value = DB.cashbook.openingBalance || 0;
+  document.getElementById('openingBalanceInput').value = DB.cashbook?.openingBalance||0;
   new bootstrap.Modal(document.getElementById('openingBalanceModal')).show();
 }
-document.getElementById('openingBalanceForm').addEventListener('submit', function(e){
-  e.preventDefault();
-  DB.cashbook.openingBalance = Number(document.getElementById('openingBalanceInput').value)||0;
-  logAudit('Edit','Cashbook', `Set opening balance to ₹${DB.cashbook.openingBalance}`);
-  saveDB();
-  renderCashbook();
-  showToast('Opening Balance Set', fmtMoney(DB.cashbook.openingBalance), 'success');
-  bootstrap.Modal.getInstance(document.getElementById('openingBalanceModal')).hide();
-});
+function saveOpeningBalance(){
+  const val = Number((document.getElementById('openingBalanceInput')||{}).value)||0;
+  if(!DB.cashbook) DB.cashbook={};
+  DB.cashbook.openingBalance = val;
+  logAudit('Edit','Cashbook','Set opening balance '+fmtMoney(val));
+  saveDB(); renderCashbook();
+  showToast('Opening Balance Set', fmtMoney(val),'success');
+  const modal=document.getElementById('openingBalanceModal');
+  if(modal) bootstrap.Modal.getInstance(modal)?.hide();
+}
+try{ document.getElementById('openingBalanceForm')?.addEventListener('submit',function(e){e.preventDefault();saveOpeningBalance();}); }catch(e){}
+
+// Patch getCashSummary to include manual entries
+function getCashSummary(){
+  if(!DB) return {opening:0,income:0,expense:0,closing:0,rows:[]};
+  const opening = Number(DB.cashbook?.openingBalance||0);
+  const rows=[];
+  // Cash income
+  (DB.income||[]).filter(i=>i.mode==='Cash'&&!i._deleted).forEach(i=>{
+    rows.push({date:i.date,type:'Income',detail:(i.customerName?i.customerName+' — ':'')+i.service,in:Number(i.amount||0),out:0,source:'income',_id:i.uuid||String(i.id)});
+  });
+  // Cash expense
+  (DB.expense||[]).filter(e=>e.mode==='Cash'&&!e._deleted).forEach(e=>{
+    rows.push({date:e.date,type:'Expense',detail:e.category+(e.description?' — '+e.description:''),in:0,out:Number(e.amount||0),source:'expense',_id:e.uuid||String(e.id)});
+  });
+  // Manual entries
+  (DB.cashbookManual||[]).filter(m=>!m._deleted).forEach(m=>{
+    rows.push({date:m.date,type:'Manual',detail:m.detail,in:m.type==='In'?Number(m.amount||0):0,out:m.type==='Out'?Number(m.amount||0):0,source:'manual',_id:m.uuid||String(m.id)});
+  });
+  rows.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
+  const income  = rows.reduce((s,r)=>s+Number(r.in||0),0);
+  const expense = rows.reduce((s,r)=>s+Number(r.out||0),0);
+  return {opening, income, expense, closing: opening+income-expense, rows};
+}
+
+function getCashBalance(){
+  const s = getCashSummary(); return s.closing;
+}
 
 /* ====================================================================
    BANK MODULE
 ==================================================================== */
 function renderBank(){
+  if(!DB) return;
   const sum = getBankSummary();
-  document.getElementById('bankCurrentBalance').textContent = fmtMoney(sum.closing);
-  document.getElementById('bankDeposits').textContent = fmtMoney(sum.deposits);
-  document.getElementById('bankWithdrawals').textContent = fmtMoney(sum.withdrawals);
+  if(document.getElementById('bankCurrentBalance')) document.getElementById('bankCurrentBalance').textContent = fmtMoney(sum.closing);
+  if(document.getElementById('bankDeposits'))       document.getElementById('bankDeposits').textContent       = fmtMoney(sum.deposits);
+  if(document.getElementById('bankWithdrawals'))    document.getElementById('bankWithdrawals').textContent    = fmtMoney(sum.withdrawals);
 
-  let running = sum.opening;
+  let rows = [...sum.rows];
+  const q    = (document.getElementById('bkSearch')?.value||'').toLowerCase();
+  const typeF= document.getElementById('bkTypeFilter')?.value||'';
+  if(q)     rows = rows.filter(r=>(r.note||r.detail||'').toLowerCase().includes(q));
+  if(typeF) rows = rows.filter(r=>r.type===typeF);
+  rows = _applyDateFilter(rows,'bk');
+
   const body = document.getElementById('bankBody');
-  document.getElementById('bankEmpty').classList.toggle('d-none', sum.rows.length>0);
-  let rowsHtml = `<tr style="background:var(--surface-2);"><td>—</td><td colspan="2"><strong>Opening Balance</strong></td><td class="text-end">—</td><td class="text-end">—</td><td class="text-end mono"><strong>${fmtMoney(sum.opening)}</strong></td></tr>`;
-  rowsHtml += sum.rows.map(r=>{
-    running += r.in - r.out;
+  if(!body) return;
+  document.getElementById('bankEmpty')?.classList.toggle('d-none', rows.length>0||sum.opening>0);
+  let running = sum.opening;
+  let html = `<tr style="background:var(--surface-2);font-weight:700;">
+    <td>—</td><td colspan="2">Opening Balance</td>
+    <td class="text-end">—</td><td class="text-end">—</td>
+    <td class="text-end mono">${fmtMoney(sum.opening)}</td><td></td></tr>`;
+  html += rows.map(r=>{
+    running += Number(r.in||0) - Number(r.out||0);
+    const isTxn = r._type==='txn';
     return `<tr>
       <td>${fmtDate(r.date)}</td>
-      <td><span class="badge-status ${r.in?'bs-completed':'bs-rejected'}">${r.type}</span></td>
-      <td>${escapeHtml(r.detail)}</td>
+      <td><span class="badge-status ${r.in?'bs-completed':'bs-rejected'}">${escapeHtml(r.type||'')}</span></td>
+      <td>${escapeHtml(r.note||r.detail||'')}</td>
       <td class="text-end mono up-text">${r.in?('+'+fmtMoney(r.in)):'—'}</td>
       <td class="text-end mono down-text">${r.out?('-'+fmtMoney(r.out)):'—'}</td>
-      <td class="text-end mono">${fmtMoney(running)}</td>
-    </tr>`;
+      <td class="text-end mono fw-bold">${fmtMoney(running)}</td>
+      <td class="text-end">${isTxn
+        ? `<button class="btn btn-outline-app btn-icon-sq" onclick="openBankTxnModal('${r.txnType}',${r._id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
+           <button class="btn btn-ghost-danger btn-icon-sq" onclick="deleteBankTxn(${r._id})" title="Delete"><i class="fa-solid fa-trash"></i></button>`
+        : `<span style="font-size:10px;color:var(--text-3);">${r.source||''}</span>`}
+      </td></tr>`;
   }).join('');
-  body.innerHTML = rowsHtml;
+  body.innerHTML = html;
 }
 
-function openBankTxnModal(type){
-  document.getElementById('bankTxnModalTitle').textContent = type;
-  document.getElementById('bankTxnType').value = type;
+['bkSearch','bkTypeFilter','bkFrom','bkTo'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('input',  renderBank);
+  document.getElementById(id)?.addEventListener('change', renderBank);
+});
+
+function openBankTxnModal(type, editId){
+  document.getElementById('bankTxnForm')?.reset();
+  document.getElementById('bankTxnId').value   = editId||'';
+  document.getElementById('bankTxnType').value = type||'Deposit';
+  document.getElementById('bankTxnModalTitle').textContent = editId ? 'Edit '+type : type;
+  document.getElementById('bankTxnSubmitBtn').textContent  = editId ? 'Update' : 'Save '+type;
   document.getElementById('bankTxnDate').value = todayStr();
-  document.getElementById('bankTxnAmount').value = '';
-  document.getElementById('bankTxnNote').value = '';
-  document.getElementById('bankTxnSubmitBtn').textContent = type==='Deposit' ? 'Save Deposit' : 'Save Withdrawal';
+  if(editId){
+    const txn = (DB.bankTxns||[]).find(t=>t.id===editId||t.uuid===editId);
+    if(txn){
+      document.getElementById('bankTxnDate').value   = txn.date||'';
+      document.getElementById('bankTxnAmount').value = txn.amount||0;
+      document.getElementById('bankTxnNote').value   = txn.note||'';
+    }
+  }
   new bootstrap.Modal(document.getElementById('bankTxnModal')).show();
 }
-document.getElementById('bankTxnForm').addEventListener('submit', function(e){
-  e.preventDefault();
-  const type = document.getElementById('bankTxnType').value;
-  const amount = Number(document.getElementById('bankTxnAmount').value)||0;
-  if(type==='Withdrawal' && amount > getBankBalance()){
-    showToast('Insufficient Balance', `Bank balance is only ${fmtMoney(getBankBalance())}.`, 'warning');
+
+function saveBankTxn(){
+  const editId = ((document.getElementById('bankTxnId')||{}).value||'');
+  const type   = ((document.getElementById('bankTxnType')||{}).value||'Deposit');
+  const dateVal= ((document.getElementById('bankTxnDate')||{}).value||'');
+  const amount = Number((document.getElementById('bankTxnAmount')||{}).value)||0;
+  const note   = (((document.getElementById('bankTxnNote')||{}).value)||'').trim();
+  if(!dateVal) { showToast('Required','Please select a date.','danger'); return; }
+  if(amount<=0){ showToast('Required','Please enter a valid amount.','danger'); return; }
+  if(type==='Withdrawal' && !editId && amount > getBankBalance()){
+    showToast('Low Balance','Bank balance: '+fmtMoney(getBankBalance())+'. Saving anyway.','warning');
   }
-  const data = { id: DB.meta.nextBankTxnId++, date: document.getElementById('bankTxnDate').value, type, amount, note: document.getElementById('bankTxnNote').value.trim() };
-  DB.bankTxns.push(data);
-  logAudit('Add','Bank', `${type} of ₹${amount}`);
+  const now=new Date().toISOString();
+  const data={date:dateVal,type,amount,note,updatedAt:now};
+  if(!DB.bankTxns) DB.bankTxns=[];
+  if(editId){
+    const rec=DB.bankTxns.find(t=>t.id===Number(editId)||t.uuid===editId);
+    if(rec){if(!rec.uuid)rec.uuid=generateUUID();Object.assign(rec,data);}
+    logAudit('Edit','Bank','Updated '+type+' '+fmtMoney(amount));
+    showToast('Updated',type+' '+fmtMoney(amount),'success');
+  } else {
+    if(!DB.meta.nextBankTxnId) DB.meta.nextBankTxnId=1;
+    data.id=DB.meta.nextBankTxnId++;data.uuid=generateUUID();data.createdAt=now;
+    DB.bankTxns.push(data);
+    logAudit('Add','Bank',type+' '+fmtMoney(amount));
+    showToast(type+' Recorded',fmtMoney(amount),'success');
+  }
   saveDB(); renderBank();
-  showToast(type+' Recorded', fmtMoney(amount), 'success');
-  bootstrap.Modal.getInstance(document.getElementById('bankTxnModal')).hide();
-});
+  const modal=document.getElementById('bankTxnModal');
+  if(modal) bootstrap.Modal.getInstance(modal)?.hide();
+}
+try{document.getElementById('bankTxnForm')?.addEventListener('submit',function(e){e.preventDefault();saveBankTxn();});}catch(e){}
+
+function deleteBankTxn(id){
+  const txn = (DB.bankTxns||[]).find(t=>t.id===id||t.uuid===id);
+  if(!txn) return;
+  showConfirm('Delete Transaction?',`Delete ${txn.type} ${fmtMoney(txn.amount)}?`, ()=>{
+    txn._deleted=true; txn.updatedAt=new Date().toISOString();
+    queueOfflineChange('Bank', Object.assign({},txn));
+    DB.bankTxns = DB.bankTxns.filter(t=>t.id!==id&&t.uuid!==id);
+    saveDB(); renderBank();
+    showToast('Deleted','Transaction removed.','success');
+  });
+}
+
+function getBankSummary(){
+  if(!DB) return {opening:0,deposits:0,withdrawals:0,closing:0,rows:[]};
+  const opening = Number(DB.bank?.openingBalance||0);
+  const rows=[];
+  // UPI/Bank income
+  (DB.income||[]).filter(i=>i.mode!=='Cash'&&!i._deleted).forEach(i=>{
+    rows.push({date:i.date,type:'Credit',note:(i.customerName?i.customerName+' — ':'')+i.service+' ('+i.mode+')',in:Number(i.amount||0),out:0,source:'income',_type:'auto',_id:i.id});
+  });
+  // UPI/Bank expense
+  (DB.expense||[]).filter(e=>e.mode!=='Cash'&&!e._deleted).forEach(e=>{
+    rows.push({date:e.date,type:'Debit',note:e.category+(e.description?' — '+e.description:'')+'  ('+e.mode+')',in:0,out:Number(e.amount||0),source:'expense',_type:'auto',_id:e.id});
+  });
+  // Manual txns
+  (DB.bankTxns||[]).filter(t=>!t._deleted).forEach(t=>{
+    rows.push({date:t.date,type:t.type,note:t.note||t.type,in:t.type==='Deposit'?Number(t.amount||0):0,out:t.type==='Withdrawal'?Number(t.amount||0):0,_type:'txn',txnType:t.type,_id:t.id});
+  });
+  rows.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
+  const deposits     = rows.reduce((s,r)=>s+Number(r.in||0),0);
+  const withdrawals  = rows.reduce((s,r)=>s+Number(r.out||0),0);
+  return {opening, deposits, withdrawals, closing:opening+deposits-withdrawals, rows};
+}
+
+function getBankBalance(){ return getBankSummary().closing; }
+
 /* ====================================================================
-   LOANS MODULE
+   LOANS & EMI MODULE
 ==================================================================== */
 function renderLoans(){
-  const grid = document.getElementById('loansCardGrid');
-  document.getElementById('loansEmpty').classList.toggle('d-none', DB.loans.length>0);
-  const typeIcons = {'Business Loan':'fa-briefcase','Vehicle Loan':'fa-car','Credit Card':'fa-credit-card'};
-  grid.innerHTML = DB.loans.map(l=>{
-    const paidTotal = DB.emiPayments.filter(p=>p.loanId===l.id).reduce((s,p)=>s+p.amount,0);
-    const pct = l.amount>0 ? Math.min(100, Math.round((paidTotal/l.amount)*100)) : 0;
-    return `<div class="col-lg-4 col-md-6">
-      <div class="card-app h-100">
-        <div class="card-app-body">
-          <div class="d-flex justify-content-between align-items-start mb-2">
-            <div>
-              <span class="badge-status bs-applied"><i class="fa-solid ${typeIcons[l.type]||'fa-hand-holding-dollar'} me-1"></i>${l.type}</span>
-              <h6 class="mt-2 mb-0" style="font-weight:800;">${escapeHtml(l.name)}</h6>
-            </div>
-            <div class="dropdown">
-              <button class="btn btn-outline-app btn-icon-sq" data-bs-toggle="dropdown"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-              <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="javascript:void(0)" onclick="openLoanModal(${l.id})"><i class="fa-solid fa-pen me-2"></i>Edit</a></li>
-                <li><a class="dropdown-item" href="javascript:void(0)" onclick="openEmiHistory(${l.id})"><i class="fa-solid fa-receipt me-2"></i>EMI History</a></li>
-                <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="deleteLoan(${l.id})"><i class="fa-solid fa-trash me-2"></i>Delete</a></li>
-              </ul>
-            </div>
-          </div>
-          <div class="row g-2 mb-2">
-            <div class="col-6"><div style="font-size:11px;color:var(--text-3);">Loan Amount</div><div class="mono" style="font-weight:700;">${fmtMoney(l.amount)}</div></div>
-            <div class="col-6"><div style="font-size:11px;color:var(--text-3);">EMI Amount</div><div class="mono" style="font-weight:700;">${fmtMoney(l.emiAmount)}</div></div>
-            <div class="col-6"><div style="font-size:11px;color:var(--text-3);">Due Date</div><div style="font-weight:700;">Day ${l.dueDate||'—'}</div></div>
-            <div class="col-6"><div style="font-size:11px;color:var(--text-3);">Outstanding</div><div class="mono down-text" style="font-weight:700;">${fmtMoney(l.outstanding)}</div></div>
-          </div>
-          <div class="progress-app mb-1"><div class="bar" style="width:${pct}%;background:var(--teal);"></div></div>
-          <div style="font-size:11px;color:var(--text-3);">${pct}% paid (${fmtMoney(paidTotal)} of ${fmtMoney(l.amount)})</div>
-          <button class="btn btn-marigold btn-sm w-100 mt-3" onclick="openEmiModal(${l.id})"><i class="fa-solid fa-plus me-1"></i>Record EMI Payment</button>
-        </div>
-      </div>
-    </div>`;
+  if(!DB) return;
+  let list = [...(DB.loans||[])];
+  const sf = document.getElementById('loanStatusFilter')?.value||'';
+  if(sf) list = list.filter(l=>l.status===sf);
+
+  // KPIs
+  const totalOuts = list.reduce((s,l)=>s+Number(l.outstanding||0),0);
+  const totalPaid = list.reduce((s,l)=>{
+    return s+(DB.emiPayments||[]).filter(p=>p.loanId===l.id).reduce((ss,p)=>ss+Number(p.amount||0),0);
+  },0);
+  const active  = list.filter(l=>!l.status||l.status==='Active').length;
+  const closed  = list.filter(l=>l.status==='Closed').length;
+  renderFinanceKpi('loanKpiGrid',[
+    {icon:'fa-hand-holding-dollar',tone:'danger',  label:'Total Outstanding',value:fmtMoney(totalOuts)},
+    {icon:'fa-circle-check',       tone:'success', label:'Total EMI Paid',   value:fmtMoney(totalPaid)},
+    {icon:'fa-rotate',             tone:'info',    label:'Active Loans',     value:active},
+    {icon:'fa-lock',               tone:'marigold',label:'Closed Loans',     value:closed},
+  ]);
+
+  const body = document.getElementById('loansBody');
+  document.getElementById('loansEmpty')?.classList.toggle('d-none', list.length>0);
+  if(!body) return;
+  body.innerHTML = list.map(l=>{
+    const paid     = (DB.emiPayments||[]).filter(p=>p.loanId===l.id).reduce((s,p)=>s+Number(p.amount||0),0);
+    const pct      = l.amount>0 ? Math.min(100,Math.round((paid/l.amount)*100)) : 0;
+    const outstanding = Number(l.outstanding||0);
+    const nextDue  = calcNextEmiDue(l);
+    const dueDiff  = nextDue ? daysFromToday(nextDue) : null;
+    const dueCls   = dueDiff!==null && dueDiff<=3 ? 'down-text' : dueDiff!==null && dueDiff<=7 ? '' : 'up-text';
+    return `<tr>
+      <td><strong>${escapeHtml(l.name||'')}</strong></td>
+      <td><span class="badge-status bs-applied">${escapeHtml(l.type||'')}</span></td>
+      <td class="mono">${fmtMoney(l.amount)}</td>
+      <td class="mono">${fmtMoney(l.emiAmount)}</td>
+      <td class="mono up-text">${fmtMoney(paid)}</td>
+      <td class="mono down-text fw-bold">${fmtMoney(outstanding)}</td>
+      <td class="${dueCls}">${nextDue?fmtDate(nextDue):'—'}</td>
+      <td><span class="badge-status ${l.status==='Closed'?'bs-rejected':'bs-completed'}">${escapeHtml(l.status||'Active')}</span></td>
+      <td class="text-end">
+        <button class="btn btn-outline-app btn-icon-sq" onclick="openEmiModal(${l.id})" title="Record EMI"><i class="fa-solid fa-plus"></i></button>
+        <button class="btn btn-outline-app btn-icon-sq" onclick="openEmiHistory(${l.id})" title="EMI History"><i class="fa-solid fa-receipt"></i></button>
+        <button class="btn btn-outline-app btn-icon-sq" onclick="openLoanModal(${l.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn btn-ghost-danger btn-icon-sq" onclick="deleteLoan(${l.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
+      </td></tr>`;
+  }).join('');
+  // Populate EMI loan filter dropdown
+  populateLoanEmiFilter();
+  renderEMIHistory();
+}
+
+function calcNextEmiDue(loan){
+  if(!loan.dueDate) return null;
+  const now  = new Date();
+  const day  = Number(loan.dueDate);
+  let d = new Date(now.getFullYear(), now.getMonth(), day);
+  if(d <= now) d = new Date(now.getFullYear(), now.getMonth()+1, day);
+  return d.toISOString().slice(0,10);
+}
+
+function populateLoanEmiFilter(){
+  const sel = document.getElementById('emiLoanFilter');
+  if(!sel) return;
+  const cur = sel.value;
+  sel.innerHTML='<option value="">All Loans</option>'+(DB.loans||[]).map(l=>`<option value="${l.id}">${escapeHtml(l.name)}</option>`).join('');
+  if(cur) sel.value=cur;
+  // Also EMI modal loan select
+  const ms = document.getElementById('emiLoanSelect');
+  if(ms){ ms.innerHTML=(DB.loans||[]).map(l=>`<option value="${l.id}">${escapeHtml(l.name)}</option>`).join(''); }
+}
+
+function renderEMIHistory(){
+  if(!DB) return;
+  let list = [...(DB.emiPayments||[])];
+  const lf = document.getElementById('emiLoanFilter')?.value||'';
+  if(lf) list = list.filter(p=>String(p.loanId)===lf);
+  list = _applyDateFilter(list,'emi','date');
+  list.sort((a,b)=>a.date<b.date?1:-1);
+  const body = document.getElementById('emiHistBody');
+  document.getElementById('emiHistEmpty')?.classList.toggle('d-none', list.length>0);
+  if(!body) return;
+  body.innerHTML = list.map(p=>{
+    const loan = (DB.loans||[]).find(l=>l.id===Number(p.loanId||p.loanId));
+    return `<tr>
+      <td>${fmtDate(p.date)}</td>
+      <td>${escapeHtml(loan?.name||'—')}</td>
+      <td class="mono">${p.emiNo||'—'}</td>
+      <td><span class="badge-status bs-applied">${escapeHtml(p.mode||'Cash')}</span></td>
+      <td class="text-end mono fw-bold">${fmtMoney(p.amount)}</td>
+      <td class="text-end">
+        <button class="btn btn-outline-app btn-icon-sq" onclick="openEmiModal(${p.loanId},${p.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn btn-ghost-danger btn-icon-sq" onclick="deleteEmiPayment(${p.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
+      </td></tr>`;
   }).join('');
 }
 
+['emiFrom','emiTo'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('change',renderEMIHistory);
+});
+
 function openLoanModal(id){
-  const form = document.getElementById('loanForm');
-  form.reset();
+  document.getElementById('loanForm')?.reset();
   document.getElementById('loanId').value='';
+  document.getElementById('loanModalTitle').textContent = id ? 'Edit Loan' : 'Add Loan';
   if(id){
-    const l = DB.loans.find(x=>x.id===id);
+    const l=(DB.loans||[]).find(x=>x.id===id);
     if(!l) return;
-    document.getElementById('loanModalTitle').textContent='Edit Loan';
-    document.getElementById('loanId').value=l.id;
-    document.getElementById('loanType').value=l.type;
-    document.getElementById('loanName').value=l.name;
-    document.getElementById('loanAmount').value=l.amount;
-    document.getElementById('loanEmiAmount').value=l.emiAmount;
-    document.getElementById('loanDueDate').value=l.dueDate||'';
-    document.getElementById('loanOutstanding').value=l.outstanding;
-  }else{
-    document.getElementById('loanModalTitle').textContent='Add Loan';
+    document.getElementById('loanId').value         = l.id;
+    document.getElementById('loanType').value        = l.type||'Business Loan';
+    document.getElementById('loanStatus').value      = l.status||'Active';
+    document.getElementById('loanName').value        = l.name||'';
+    document.getElementById('loanAmount').value      = l.amount||0;
+    document.getElementById('loanInterestRate').value= l.interestRate||'';
+    document.getElementById('loanEmiAmount').value   = l.emiAmount||0;
+    document.getElementById('loanOutstanding').value = l.outstanding||0;
+    document.getElementById('loanStartDate').value   = l.startDate||'';
+    document.getElementById('loanDueDate').value     = l.dueDate||'';
+    document.getElementById('loanNotes').value       = l.notes||'';
   }
   new bootstrap.Modal(document.getElementById('loanModal')).show();
 }
 
-document.getElementById('loanForm').addEventListener('submit', function(e){
-  e.preventDefault();
-  const id = document.getElementById('loanId').value;
-  const data = {
-    type: document.getElementById('loanType').value,
-    name: document.getElementById('loanName').value.trim(),
-    amount: Number(document.getElementById('loanAmount').value)||0,
-    emiAmount: Number(document.getElementById('loanEmiAmount').value)||0,
-    dueDate: document.getElementById('loanDueDate').value,
-    outstanding: Number(document.getElementById('loanOutstanding').value)||0
+function saveLoan(){
+  const id=((document.getElementById('loanId')||{}).value||'');
+  const name=((document.getElementById('loanName')||{}).value||'').trim();
+  if(!name){showToast('Required','Please enter loan name.','danger');return;}
+  const amount=Number((document.getElementById('loanAmount')||{}).value)||0;
+  if(amount<=0){showToast('Required','Please enter loan amount.','danger');return;}
+  const now=new Date().toISOString();
+  const data={
+    type:        ((document.getElementById('loanType')||{}).value)||'Business Loan',
+    status:      ((document.getElementById('loanStatus')||{}).value)||'Active',
+    name, amount,
+    interestRate:Number((document.getElementById('loanInterestRate')||{}).value)||0,
+    emiAmount:   Number((document.getElementById('loanEmiAmount')||{}).value)||0,
+    outstanding: Number((document.getElementById('loanOutstanding')||{}).value)||0,
+    startDate:   ((document.getElementById('loanStartDate')||{}).value)||'',
+    dueDate:     ((document.getElementById('loanDueDate')||{}).value)||'',
+    notes:       (((document.getElementById('loanNotes')||{}).value)||'').trim(),
+    updatedAt:   now,
   };
-  if(id){ Object.assign(DB.loans.find(x=>x.id===Number(id)), data); logAudit('Edit','Loans',`Updated loan ${data.name}`); }
-  else{ data.id = DB.meta.nextLoanId++; DB.loans.push(data); logAudit('Add','Loans',`Added loan ${data.name}`); }
+  if(!DB.loans) DB.loans=[];
+  if(id){
+    const rec=DB.loans.find(x=>x.id===Number(id));
+    if(!rec){showToast('Error','Record not found.','danger');return;}
+    if(!rec.uuid)rec.uuid=generateUUID();
+    Object.assign(rec,data);
+    logAudit('Edit','Loans','Updated loan "'+name+'"');
+    showToast('Loan Updated',name,'success');
+  } else {
+    if(!DB.meta.nextLoanId)DB.meta.nextLoanId=1;
+    data.id=DB.meta.nextLoanId++;data.uuid=generateUUID();data.createdAt=now;
+    DB.loans.push(data);
+    logAudit('Add','Loans','Added "'+name+'" '+fmtMoney(amount));
+    showToast('Loan Added',name+' — '+fmtMoney(amount),'success');
+  }
   saveDB(); renderLoans();
-  showToast('Loan Saved', data.name, 'success');
-  bootstrap.Modal.getInstance(document.getElementById('loanModal')).hide();
-});
+  const modal=document.getElementById('loanModal');
+  if(modal) bootstrap.Modal.getInstance(modal)?.hide();
+}
+try{document.getElementById('loanForm')?.addEventListener('submit',function(e){e.preventDefault();saveLoan();});}catch(e){}
 
 function deleteLoan(id){
-  const l = DB.loans.find(x=>x.id===id);
+  const l=(DB.loans||[]).find(x=>x.id===id);
   if(!l) return;
-  showConfirm('Delete Loan?', `Delete loan "${l.name}" and all its EMI history?`, function(){
+  showConfirm('Delete Loan?',`Delete "${l.name}"? All EMI payments will also be removed.`, ()=>{
+    l._deleted=true; l.updatedAt=new Date().toISOString();
+    queueOfflineChange('Loans', Object.assign({},l));
     DB.loans = DB.loans.filter(x=>x.id!==id);
-    DB.emiPayments = DB.emiPayments.filter(p=>p.loanId!==id);
-    logAudit('Delete','Loans',`Deleted loan ${l.name}`);
+    DB.emiPayments = (DB.emiPayments||[]).filter(p=>p.loanId!==id);
     saveDB(); renderLoans();
-    showToast('Loan Deleted','Removed successfully.','success');
+    showToast('Deleted',l.name+' removed.','success');
   });
 }
 
-function openEmiModal(loanId){
-  document.getElementById('emiLoanId').value = loanId;
+function openEmiModal(loanId, editPayId){
+  document.getElementById('emiForm')?.reset();
+  document.getElementById('emiPayId').value  = editPayId||'';
+  document.getElementById('emiLoanId').value = loanId||'';
+  populateLoanEmiFilter();
+  if(loanId) document.getElementById('emiLoanSelect').value = loanId;
   document.getElementById('emiDate').value = todayStr();
-  const loan = DB.loans.find(l=>l.id===loanId);
-  document.getElementById('emiAmount').value = loan ? loan.emiAmount : '';
+  const loan = (DB.loans||[]).find(l=>l.id===Number(loanId));
+  if(loan) document.getElementById('emiAmount').value = loan.emiAmount||0;
+  document.getElementById('emiModalTitle').textContent = editPayId ? 'Edit EMI Payment' : 'Record EMI Payment';
+  if(editPayId){
+    const p=(DB.emiPayments||[]).find(x=>x.id===editPayId);
+    if(p){
+      document.getElementById('emiDate').value   = p.date||'';
+      document.getElementById('emiNo').value     = p.emiNo||'';
+      document.getElementById('emiAmount').value = p.amount||0;
+      document.getElementById('emiMode').value   = p.mode||'Cash';
+      document.getElementById('emiNotes').value  = p.notes||'';
+    }
+  } else {
+    // Auto-suggest EMI number
+    const count = (DB.emiPayments||[]).filter(p=>p.loanId===Number(loanId)).length;
+    document.getElementById('emiNo').value = count+1;
+  }
   new bootstrap.Modal(document.getElementById('emiModal')).show();
 }
-document.getElementById('emiForm').addEventListener('submit', function(e){
-  e.preventDefault();
-  const loanId = Number(document.getElementById('emiLoanId').value);
-  const loan = DB.loans.find(l=>l.id===loanId);
-  if(!loan) return;
-  const amount = Number(document.getElementById('emiAmount').value)||0;
-  const mode = document.getElementById('emiMode').value;
-  const available = mode==='Cash' ? getCashBalance() : getBankBalance();
-  if(amount > available){ showToast('Insufficient Balance', `${mode} balance is only ${fmtMoney(available)}.`, 'warning'); }
-  DB.emiPayments.push({ id: DB.meta.nextLoanId*1000 + DB.emiPayments.length+1, loanId, date: document.getElementById('emiDate').value, amount, mode });
-  loan.outstanding = Math.max(0, loan.outstanding - amount);
-  logAudit('Add','Loans', `EMI payment ₹${amount} for ${loan.name} (${mode})`);
-  saveDB(); renderLoans();
-  showToast('EMI Recorded', fmtMoney(amount)+' for '+loan.name, 'success');
-  bootstrap.Modal.getInstance(document.getElementById('emiModal')).hide();
-});
+
+function saveEmiPayment(){
+  const editId=((document.getElementById('emiPayId')||{}).value||'');
+  const loanId=Number(((document.getElementById('emiLoanSelect')||{}).value)||(document.getElementById('emiLoanId')||{}).value||0);
+  if(!loanId){showToast('Required','Please select a loan.','danger');return;}
+  const dateVal=((document.getElementById('emiDate')||{}).value||'');
+  const amount=Number((document.getElementById('emiAmount')||{}).value)||0;
+  if(!dateVal){showToast('Required','Please select payment date.','danger');return;}
+  if(amount<=0){showToast('Required','Please enter a valid amount.','danger');return;}
+  const now=new Date().toISOString();
+  const data={
+    loanId,date:dateVal,
+    emiNo:Number((document.getElementById('emiNo')||{}).value)||'',
+    amount,
+    mode:((document.getElementById('emiMode')||{}).value)||'Cash',
+    notes:(((document.getElementById('emiNotes')||{}).value)||'').trim(),
+    updatedAt:now,
+  };
+  if(!DB.emiPayments) DB.emiPayments=[];
+  if(editId){
+    const rec=DB.emiPayments.find(x=>x.id===Number(editId));
+    if(rec){if(!rec.uuid)rec.uuid=generateUUID();Object.assign(rec,data);}
+    logAudit('Edit','EMI','Updated EMI #'+data.emiNo+' '+fmtMoney(amount));
+  } else {
+    if(!DB.meta.nextEmiId)DB.meta.nextEmiId=1;
+    data.id=DB.meta.nextEmiId++;data.uuid=generateUUID();data.createdAt=now;
+    DB.emiPayments.push(data);
+    const loan=(DB.loans||[]).find(l=>l.id===loanId);
+    if(loan){loan.outstanding=Math.max(0,Number(loan.outstanding||0)-amount);loan.updatedAt=now;}
+    logAudit('Add','EMI','EMI #'+data.emiNo+' '+fmtMoney(amount));
+  }
+  saveDB();renderLoans();
+  showToast('EMI Recorded',fmtMoney(data.amount)+' — EMI #'+data.emiNo,'success');
+  const modal=document.getElementById('emiModal');
+  if(modal)bootstrap.Modal.getInstance(modal)?.hide();
+}
+try{document.getElementById('emiForm')?.addEventListener('submit',function(e){e.preventDefault();saveEmiPayment();});}catch(e){}
+
+function deleteEmiPayment(id){
+  const p=(DB.emiPayments||[]).find(x=>x.id===id);
+  if(!p) return;
+  showConfirm('Delete EMI Payment?',`Delete EMI #${p.emiNo||''} ${fmtMoney(p.amount)}?`, ()=>{
+    p._deleted=true; p.updatedAt=new Date().toISOString();
+    queueOfflineChange('EMI', Object.assign({},p));
+    DB.emiPayments=DB.emiPayments.filter(x=>x.id!==id);
+    // Restore outstanding
+    const loan=(DB.loans||[]).find(l=>l.id===p.loanId);
+    if(loan){ loan.outstanding=(Number(loan.outstanding||0)+Number(p.amount||0)); loan.updatedAt=new Date().toISOString(); }
+    saveDB(); renderLoans();
+    showToast('Deleted','EMI payment removed.','success');
+  });
+}
 
 function openEmiHistory(loanId){
-  const loan = DB.loans.find(l=>l.id===loanId);
+  const loan=(DB.loans||[]).find(l=>l.id===loanId);
   if(!loan) return;
-  document.getElementById('emiHistLoanName').textContent = loan.name;
-  const payments = DB.emiPayments.filter(p=>p.loanId===loanId).sort((a,b)=>b.date<a.date?-1:1);
-  document.getElementById('emiHistoryEmpty').classList.toggle('d-none', payments.length>0);
-  document.getElementById('emiHistoryBody').innerHTML = payments.map(p=>`
-    <tr><td>${fmtDate(p.date)}</td><td class="mono">${fmtMoney(p.amount)}</td><td><span class="badge-status ${p.mode==='Cash'?'bs-cash':'bs-upi'}">${p.mode}</span></td></tr>
-  `).join('');
+  const el=document.getElementById('emiHistLoanName');
+  if(el){ el.textContent=loan.name; el.dataset.lid=loanId; }
+  const pays=(DB.emiPayments||[]).filter(p=>p.loanId===loanId).sort((a,b)=>a.date<b.date?1:-1);
+  const body=document.getElementById('emiHistoryBody');
+  document.getElementById('emiHistoryEmpty')?.classList.toggle('d-none',pays.length>0);
+  if(body) body.innerHTML=pays.map(p=>`<tr>
+    <td>${fmtDate(p.date)}</td>
+    <td class="mono">${p.emiNo||'—'}</td>
+    <td class="mono up-text">${fmtMoney(p.amount)}</td>
+    <td><span class="badge-status bs-applied">${p.mode||'Cash'}</span></td>
+    <td><button class="btn btn-ghost-danger btn-icon-sq" onclick="deleteEmiPayment(${p.id})"><i class="fa-solid fa-trash"></i></button></td>
+  </tr>`).join('');
   new bootstrap.Modal(document.getElementById('emiHistoryModal')).show();
 }
 
@@ -5755,385 +6533,228 @@ function openEmiHistory(loanId){
    CHIT FINANCE MODULE
 ==================================================================== */
 function renderChits(){
-  const grid = document.getElementById('chitsCardGrid');
-  document.getElementById('chitsEmpty').classList.toggle('d-none', DB.chits.length>0);
-  grid.innerHTML = DB.chits.map(c=>{
-    const paidTotal = DB.chitPayments.filter(p=>p.chitId===c.id).reduce((s,p)=>s+p.amount,0);
-    const dueAmount = Math.max(0, Number(c.value) - paidTotal);
-    const pct = c.value>0 ? Math.min(100, Math.round((paidTotal/c.value)*100)) : 0;
-    return `<div class="col-lg-4 col-md-6">
-      <div class="card-app h-100">
-        <div class="card-app-body">
-          <div class="d-flex justify-content-between align-items-start mb-2">
-            <h6 style="font-weight:800;"><i class="fa-solid fa-layer-group me-2" style="color:var(--teal-deep);"></i>${escapeHtml(c.name)}</h6>
-            <div class="dropdown">
-              <button class="btn btn-outline-app btn-icon-sq" data-bs-toggle="dropdown"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-              <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="javascript:void(0)" onclick="openChitModal(${c.id})"><i class="fa-solid fa-pen me-2"></i>Edit</a></li>
-                <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="deleteChit(${c.id})"><i class="fa-solid fa-trash me-2"></i>Delete</a></li>
-              </ul>
-            </div>
-          </div>
-          <div class="row g-2 mb-2">
-            <div class="col-6"><div style="font-size:11px;color:var(--text-3);">Chit Value</div><div class="mono" style="font-weight:700;">${fmtMoney(c.value)}</div></div>
-            <div class="col-6"><div style="font-size:11px;color:var(--text-3);">Monthly</div><div class="mono" style="font-weight:700;">${fmtMoney(c.monthly)}</div></div>
-            <div class="col-6"><div style="font-size:11px;color:var(--text-3);">Paid</div><div class="mono up-text" style="font-weight:700;">${fmtMoney(paidTotal)}</div></div>
-            <div class="col-6"><div style="font-size:11px;color:var(--text-3);">Due</div><div class="mono down-text" style="font-weight:700;">${fmtMoney(dueAmount)}</div></div>
-          </div>
-          <div class="progress-app mb-1"><div class="bar" style="width:${pct}%;background:var(--marigold);"></div></div>
-          <div style="font-size:11px;color:var(--text-3);">${pct}% completed</div>
-          <button class="btn btn-marigold btn-sm w-100 mt-3" onclick="openChitPaymentModal(${c.id})"><i class="fa-solid fa-plus me-1"></i>Record Installment</button>
-        </div>
-      </div>
-    </div>`;
+  if(!DB) return;
+  const list=(DB.chits||[]);
+  // KPIs
+  const totalPaid  = (DB.chitPayments||[]).reduce((s,p)=>s+Number(p.amount||0),0);
+  const totalValue = list.reduce((s,c)=>s+Number(c.value||0),0);
+  const active     = list.filter(c=>!c.status||c.status==='Active').length;
+  renderFinanceKpi('chitKpiGrid',[
+    {icon:'fa-layer-group',   tone:'info',    label:'Total Chit Value', value:fmtMoney(totalValue)},
+    {icon:'fa-circle-check',  tone:'success', label:'Total Paid',       value:fmtMoney(totalPaid)},
+    {icon:'fa-rotate',        tone:'teal',    label:'Active Chits',     value:active},
+    {icon:'fa-wallet',        tone:'marigold',label:'Balance to Pay',   value:fmtMoney(totalValue-totalPaid)},
+  ]);
+
+  const body=document.getElementById('chitsBody');
+  document.getElementById('chitsEmpty')?.classList.toggle('d-none',list.length>0);
+  if(!body) return;
+  body.innerHTML=list.map(c=>{
+    const pays=(DB.chitPayments||[]).filter(p=>p.chitId===c.id);
+    const paid=pays.reduce((s,p)=>s+Number(p.amount||0),0);
+    const instCount=pays.length;
+    const bal=Number(c.value||0)-paid;
+    return `<tr>
+      <td><strong>${escapeHtml(c.name||'')}</strong></td>
+      <td class="mono">${fmtMoney(c.value)}</td>
+      <td class="mono">${fmtMoney(c.monthly)}</td>
+      <td class="mono">${c.duration||'—'} months</td>
+      <td class="mono">${instCount}</td>
+      <td class="mono up-text">${fmtMoney(paid)}</td>
+      <td class="mono down-text fw-bold">${fmtMoney(bal)}</td>
+      <td><span class="badge-status ${c.status==='Active'?'bs-completed':c.status==='Completed'?'bs-applied':'bs-rejected'}">${escapeHtml(c.status||'Active')}</span></td>
+      <td class="text-end">
+        <button class="btn btn-outline-app btn-icon-sq" onclick="openChitInstModal(${c.id})" title="Record Installment"><i class="fa-solid fa-plus"></i></button>
+        <button class="btn btn-outline-app btn-icon-sq" onclick="openChitModal(${c.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn btn-ghost-danger btn-icon-sq" onclick="deleteChit(${c.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
+      </td></tr>`;
+  }).join('');
+  populateChitInstFilter();
+  renderChitInstHistory();
+}
+
+function populateChitInstFilter(){
+  const sel=document.getElementById('chitInstFilter');
+  if(!sel) return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">All Chits</option>'+(DB.chits||[]).map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+  if(cur) sel.value=cur;
+  const cs=document.getElementById('chitPayChitSelect');
+  if(cs) cs.innerHTML=(DB.chits||[]).map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+}
+
+function renderChitInstHistory(){
+  if(!DB) return;
+  let list=[...(DB.chitPayments||[])];
+  const cf=document.getElementById('chitInstFilter')?.value||'';
+  if(cf) list=list.filter(p=>String(p.chitId)===cf);
+  list=_applyDateFilter(list,'chit');
+  list.sort((a,b)=>a.date<b.date?1:-1);
+  const body=document.getElementById('chitInstBody');
+  document.getElementById('chitInstEmpty')?.classList.toggle('d-none',list.length>0);
+  if(!body) return;
+  body.innerHTML=list.map(p=>{
+    const chit=(DB.chits||[]).find(c=>c.id===Number(p.chitId));
+    return `<tr>
+      <td>${fmtDate(p.date)}</td>
+      <td>${escapeHtml(chit?.name||'—')}</td>
+      <td class="mono">${p.installmentNo||'—'}</td>
+      <td><span class="badge-status bs-applied">${escapeHtml(p.mode||'Cash')}</span></td>
+      <td class="text-end mono fw-bold">${fmtMoney(p.amount)}</td>
+      <td class="text-end">
+        <button class="btn btn-outline-app btn-icon-sq" onclick="openChitInstModal(${p.chitId},${p.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn btn-ghost-danger btn-icon-sq" onclick="deleteChitPayment(${p.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
+      </td></tr>`;
   }).join('');
 }
 
+['chitFrom','chitTo'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('change',renderChitInstHistory);
+});
+
 function openChitModal(id){
-  const form = document.getElementById('chitForm');
-  form.reset();
+  document.getElementById('chitForm')?.reset();
   document.getElementById('chitId').value='';
+  document.getElementById('chitModalTitle').textContent= id ? 'Edit Chit' : 'Add Chit';
   if(id){
-    const c = DB.chits.find(x=>x.id===id);
+    const c=(DB.chits||[]).find(x=>x.id===id);
     if(!c) return;
-    document.getElementById('chitModalTitle').textContent='Edit Chit';
-    document.getElementById('chitId').value=c.id;
-    document.getElementById('chitName').value=c.name;
-    document.getElementById('chitValue').value=c.value;
-    document.getElementById('chitMonthly').value=c.monthly;
-  }else{
-    document.getElementById('chitModalTitle').textContent='Add Chit';
+    document.getElementById('chitId').value        = c.id;
+    document.getElementById('chitName').value      = c.name||'';
+    document.getElementById('chitValue').value     = c.value||0;
+    document.getElementById('chitMonthly').value   = c.monthly||0;
+    document.getElementById('chitDuration').value  = c.duration||'';
+    document.getElementById('chitStartDate').value = c.startDate||'';
+    document.getElementById('chitStatus').value    = c.status||'Active';
+    document.getElementById('chitNotes').value     = c.notes||'';
   }
   new bootstrap.Modal(document.getElementById('chitModal')).show();
 }
-document.getElementById('chitForm').addEventListener('submit', function(e){
-  e.preventDefault();
-  const id = document.getElementById('chitId').value;
-  const data = { name: document.getElementById('chitName').value.trim(), value: Number(document.getElementById('chitValue').value)||0, monthly: Number(document.getElementById('chitMonthly').value)||0 };
-  if(id){ Object.assign(DB.chits.find(x=>x.id===Number(id)), data); logAudit('Edit','Chits',`Updated chit ${data.name}`); }
-  else{ data.id = DB.meta.nextChitId++; DB.chits.push(data); logAudit('Add','Chits',`Added chit ${data.name}`); }
-  saveDB(); renderChits();
-  showToast('Chit Saved', data.name, 'success');
-  bootstrap.Modal.getInstance(document.getElementById('chitModal')).hide();
-});
+
+function saveChit(){
+  const id=((document.getElementById('chitId')||{}).value||'');
+  const name=(((document.getElementById('chitName')||{}).value)||'').trim();
+  const value=Number((document.getElementById('chitValue')||{}).value)||0;
+  const monthly=Number((document.getElementById('chitMonthly')||{}).value)||0;
+  if(!name){showToast('Required','Please enter chit name.','danger');return;}
+  if(value<=0){showToast('Required','Please enter chit value.','danger');return;}
+  const now=new Date().toISOString();
+  const data={
+    name,value,monthly,
+    duration:Number((document.getElementById('chitDuration')||{}).value)||0,
+    startDate:((document.getElementById('chitStartDate')||{}).value)||'',
+    status:((document.getElementById('chitStatus')||{}).value)||'Active',
+    notes:(((document.getElementById('chitNotes')||{}).value)||'').trim(),
+    updatedAt:now,
+  };
+  if(!DB.chits) DB.chits=[];
+  if(id){
+    const rec=DB.chits.find(x=>x.id===Number(id));
+    if(!rec){showToast('Error','Record not found.','danger');return;}
+    if(!rec.uuid)rec.uuid=generateUUID();
+    Object.assign(rec,data);
+    logAudit('Edit','Chits','Updated "'+name+'"');
+    showToast('Chit Updated',name,'success');
+  } else {
+    if(!DB.meta.nextChitId)DB.meta.nextChitId=1;
+    data.id=DB.meta.nextChitId++;data.uuid=generateUUID();data.createdAt=now;
+    DB.chits.push(data);
+    logAudit('Add','Chits','Added "'+name+'" '+fmtMoney(value));
+    showToast('Chit Added',name+' — '+fmtMoney(value),'success');
+  }
+  saveDB();renderChits();
+  const modal=document.getElementById('chitModal');
+  if(modal)bootstrap.Modal.getInstance(modal)?.hide();
+}
+try{document.getElementById('chitForm')?.addEventListener('submit',function(e){e.preventDefault();saveChit();});}catch(e){}
 
 function deleteChit(id){
-  const c = DB.chits.find(x=>x.id===id);
+  const c=(DB.chits||[]).find(x=>x.id===id);
   if(!c) return;
-  showConfirm('Delete Chit?', `Delete chit "${c.name}" and its payment history?`, function(){
-    DB.chits = DB.chits.filter(x=>x.id!==id);
-    DB.chitPayments = DB.chitPayments.filter(p=>p.chitId!==id);
-    logAudit('Delete','Chits',`Deleted chit ${c.name}`);
+  showConfirm('Delete Chit?',`Delete "${c.name}"? All installments will also be removed.`, ()=>{
+    c._deleted=true; c.updatedAt=new Date().toISOString();
+    queueOfflineChange('Chits', Object.assign({},c));
+    DB.chits=DB.chits.filter(x=>x.id!==id);
+    DB.chitPayments=(DB.chitPayments||[]).filter(p=>p.chitId!==id);
     saveDB(); renderChits();
-    showToast('Chit Deleted','Removed successfully.','success');
+    showToast('Deleted',c.name+' removed.','success');
   });
 }
 
-function openChitPaymentModal(chitId){
-  document.getElementById('chitPayId').value = chitId;
+function openChitInstModal(chitId, editId){
+  document.getElementById('chitPaymentForm')?.reset();
+  document.getElementById('chitPayRecId').value = editId||'';
+  document.getElementById('chitPayId').value    = chitId||'';
+  populateChitInstFilter();
+  if(chitId) document.getElementById('chitPayChitSelect').value=chitId;
   document.getElementById('chitPayDate').value = todayStr();
-  const chit = DB.chits.find(c=>c.id===chitId);
-  document.getElementById('chitPayAmount').value = chit ? chit.monthly : '';
+  document.getElementById('chitPayModalTitle').textContent = editId ? 'Edit Installment' : 'Record Installment';
+  if(editId){
+    const p=(DB.chitPayments||[]).find(x=>x.id===editId);
+    if(p){
+      document.getElementById('chitPayDate').value    = p.date||'';
+      document.getElementById('chitPayInstNo').value  = p.installmentNo||'';
+      document.getElementById('chitPayAmount').value  = p.amount||0;
+      document.getElementById('chitPayMode').value    = p.mode||'Cash';
+      document.getElementById('chitPayNotes').value   = p.notes||'';
+    }
+  } else {
+    const cnt=(DB.chitPayments||[]).filter(p=>p.chitId===Number(chitId)).length;
+    document.getElementById('chitPayInstNo').value=cnt+1;
+    const chit=(DB.chits||[]).find(c=>c.id===Number(chitId));
+    if(chit) document.getElementById('chitPayAmount').value=chit.monthly||0;
+  }
   new bootstrap.Modal(document.getElementById('chitPaymentModal')).show();
 }
-document.getElementById('chitPaymentForm').addEventListener('submit', function(e){
-  e.preventDefault();
-  const chitId = Number(document.getElementById('chitPayId').value);
-  const chit = DB.chits.find(c=>c.id===chitId);
-  if(!chit) return;
-  const amount = Number(document.getElementById('chitPayAmount').value)||0;
-  DB.chitPayments.push({ id: chitId*1000 + DB.chitPayments.length+1, chitId, date: document.getElementById('chitPayDate').value, amount });
-  logAudit('Add','Chits', `Installment ₹${amount} for ${chit.name}`);
-  saveDB(); renderChits();
-  showToast('Installment Recorded', fmtMoney(amount)+' for '+chit.name, 'success');
-  bootstrap.Modal.getInstance(document.getElementById('chitPaymentModal')).hide();
-});
-/* ====================================================================
-   INVOICE MODULE
-==================================================================== */
-let invoiceItemCounter = 0;
 
-function renderInvoices(){
-  let list = [...DB.invoices];
-  const q = (document.getElementById('invSearch').value||'').toLowerCase();
-  if(q) list = list.filter(i => (i.invoiceNo||'').toLowerCase().includes(q) || (i.customerName||'').toLowerCase().includes(q));
-  list.sort((a,b)=>b.id-a.id);
-  const body = document.getElementById('invoiceBody');
-  document.getElementById('invoiceEmpty').classList.toggle('d-none', list.length>0);
-  body.innerHTML = list.map(inv=>`
-    <tr>
-      <td class="mono">${escapeHtml(inv.invoiceNo)}</td>
-      <td>${fmtDate(inv.date)}</td>
-      <td>${escapeHtml(inv.customerName)}</td>
-      <td>${inv.items.length} item(s) ${inv.linkedServiceId ? '<span class="badge-status bs-applied" style="font-size:9.5px;" title="Generated from a Service record">Service-linked</span>' : ''}</td>
-      <td class="text-end mono" style="font-weight:700;">${fmtMoney(inv.total)}</td>
-      <td class="text-end">
-        <button class="btn btn-outline-app btn-icon-sq" title="View / Print" onclick="previewInvoice(${inv.id})"><i class="fa-solid fa-eye"></i></button>
-        <button class="btn btn-ghost-danger btn-icon-sq" title="Delete" onclick="deleteInvoice(${inv.id})"><i class="fa-solid fa-trash"></i></button>
-      </td>
-    </tr>`).join('');
-}
-document.getElementById('invSearch').addEventListener('input', renderInvoices);
-
-function addInvoiceItemRow(item){
-  invoiceItemCounter++;
-  const rowId = 'invItem'+invoiceItemCounter;
-  const wrap = document.getElementById('invItemsWrap');
-  const div = document.createElement('div');
-  div.className = 'row g-2 mb-2 align-items-center invoice-item-row';
-  div.id = rowId;
-  div.innerHTML = `
-    <div class="col-5"><input type="text" class="form-control form-control-sm inv-item-desc" placeholder="Item / Service description" value="${escapeHtml(item?.desc||'')}"></div>
-    <div class="col-2"><input type="number" min="1" class="form-control form-control-sm inv-item-qty" placeholder="Qty" value="${item?.qty||1}"></div>
-    <div class="col-3"><input type="number" min="0" step="0.01" class="form-control form-control-sm inv-item-rate" placeholder="Rate ₹" value="${item?.rate||''}"></div>
-    <div class="col-1 text-end mono inv-item-amt" style="font-size:12.5px;font-weight:700;">₹0</div>
-    <div class="col-1 text-end"><button type="button" class="btn btn-ghost-danger btn-icon-sq" onclick="document.getElementById('${rowId}').remove(); updateInvoiceTotal();"><i class="fa-solid fa-xmark"></i></button></div>`;
-  wrap.appendChild(div);
-  div.querySelectorAll('.inv-item-qty,.inv-item-rate').forEach(inp=> inp.addEventListener('input', updateInvoiceTotal));
-  updateInvoiceTotal();
-}
-
-function updateInvoiceTotal(){
-  let total = 0;
-  document.querySelectorAll('.invoice-item-row').forEach(row=>{
-    const qty = Number(row.querySelector('.inv-item-qty').value)||0;
-    const rate = Number(row.querySelector('.inv-item-rate').value)||0;
-    const amt = qty*rate;
-    row.querySelector('.inv-item-amt').textContent = fmtMoney(amt);
-    total += amt;
-  });
-  document.getElementById('invTotalDisplay').textContent = fmtMoney(total);
-  return total;
-}
-
-function openInvoiceModal(prefill){
-  document.getElementById('invoiceForm').reset();
-  document.getElementById('invId').value='';
-  document.getElementById('invLinkedServiceId').value = prefill?.linkedServiceId || '';
-  document.getElementById('invItemsWrap').innerHTML='';
-  populateAllDropdowns();
-  document.getElementById('invDate').value = todayStr();
-  document.getElementById('invNo').value = 'INV-'+String(DB.meta.invoiceCounter).padStart(4,'0');
-  if(prefill?.customerId){
-    document.getElementById('invCustomer').value = prefill.customerId;
+function saveChitPayment(){
+  const editId=((document.getElementById('chitPayRecId')||{}).value||'');
+  const chitId=Number(((document.getElementById('chitPayChitSelect')||{}).value)||(document.getElementById('chitPayId')||{}).value||0);
+  if(!chitId){showToast('Required','Please select a chit.','danger');return;}
+  const dateVal=((document.getElementById('chitPayDate')||{}).value||'');
+  const amount=Number((document.getElementById('chitPayAmount')||{}).value)||0;
+  if(!dateVal){showToast('Required','Please select payment date.','danger');return;}
+  if(amount<=0){showToast('Required','Please enter a valid amount.','danger');return;}
+  const now=new Date().toISOString();
+  const data={
+    chitId,date:dateVal,
+    installmentNo:Number((document.getElementById('chitPayInstNo')||{}).value)||'',
+    amount,
+    mode:((document.getElementById('chitPayMode')||{}).value)||'Cash',
+    notes:(((document.getElementById('chitPayNotes')||{}).value)||'').trim(),
+    updatedAt:now,
+  };
+  if(!DB.chitPayments) DB.chitPayments=[];
+  if(editId){
+    const rec=DB.chitPayments.find(x=>x.id===Number(editId));
+    if(rec){if(!rec.uuid)rec.uuid=generateUUID();Object.assign(rec,data);}
+    logAudit('Edit','Chits','Updated installment #'+data.installmentNo);
+  } else {
+    if(!DB.meta.nextChitPayId)DB.meta.nextChitPayId=1;
+    data.id=DB.meta.nextChitPayId++;data.uuid=generateUUID();data.createdAt=now;
+    DB.chitPayments.push(data);
+    logAudit('Add','Chits','Installment #'+data.installmentNo+' '+fmtMoney(amount));
   }
-  if(prefill?.item){
-    addInvoiceItemRow(prefill.item);
-  }else{
-    addInvoiceItemRow();
-  }
-  updateInvoiceTotal();
-  new bootstrap.Modal(document.getElementById('invoiceModal')).show();
+  saveDB();renderChits();
+  showToast('Installment Recorded',fmtMoney(data.amount)+' — Inst. #'+data.installmentNo,'success');
+  const modal=document.getElementById('chitPaymentModal');
+  if(modal)bootstrap.Modal.getInstance(modal)?.hide();
 }
+try{document.getElementById('chitPaymentForm')?.addEventListener('submit',function(e){e.preventDefault();saveChitPayment();});}catch(e){}
 
-/* Generate an invoice pre-filled from a Service record — called from the
-   Services table's invoice icon. Opens the Invoice modal ready to save. */
-function generateInvoiceFromService(serviceId){
-  const s = DB.services.find(x=>x.id===serviceId);
-  if(!s) return;
-  const existing = DB.invoices.find(inv=>inv.linkedServiceId===serviceId);
-  if(existing){ previewInvoice(existing.id); return; }
-  openInvoiceModal({
-    customerId: s.customerId,
-    linkedServiceId: s.id,
-    item: { desc: s.serviceName, qty: 1, rate: Number(s.amount)||0 }
+function deleteChitPayment(id){
+  const p=(DB.chitPayments||[]).find(x=>x.id===id);
+  if(!p) return;
+  showConfirm('Delete Installment?',`Delete installment #${p.installmentNo||''} ${fmtMoney(p.amount)}?`, ()=>{
+    p._deleted=true; p.updatedAt=new Date().toISOString();
+    queueOfflineChange('Chits', Object.assign({},p));
+    DB.chitPayments=DB.chitPayments.filter(x=>x.id!==id);
+    saveDB(); renderChits();
+    showToast('Deleted','Installment removed.','success');
   });
 }
 
-document.getElementById('invoiceForm').addEventListener('submit', function(e){
-  e.preventDefault();
-  const customerId = Number(document.getElementById('invCustomer').value);
-  const customer = DB.customers.find(c=>c.id===customerId);
-  if(!customer){ showToast('Select Customer','Please select a customer.','danger'); return; }
-  const items = [];
-  document.querySelectorAll('.invoice-item-row').forEach(row=>{
-    const desc = row.querySelector('.inv-item-desc').value.trim();
-    const qty = Number(row.querySelector('.inv-item-qty').value)||0;
-    const rate = Number(row.querySelector('.inv-item-rate').value)||0;
-    if(desc) items.push({desc, qty, rate, amount: qty*rate});
-  });
-  if(items.length===0){ showToast('No Items','Please add at least one invoice item.','danger'); return; }
-  const total = items.reduce((s,i)=>s+i.amount,0);
-  const linkedServiceId = document.getElementById('invLinkedServiceId').value ? Number(document.getElementById('invLinkedServiceId').value) : null;
-  const data = { id: DB.meta.nextInvId++, invoiceNo: 'INV-'+String(DB.meta.invoiceCounter).padStart(4,'0'), date: document.getElementById('invDate').value, customerId, customerName: customer.name, items, total, linkedServiceId };
-  DB.meta.invoiceCounter++;
-  DB.invoices.push(data);
-  logAudit('Add','Invoice', `Generated invoice ${data.invoiceNo} for ${customer.name} (${fmtMoney(total)})${linkedServiceId?' — linked to a service':''}`);
-  saveDB(); renderInvoices();
-  if(typeof renderServices === 'function' && document.getElementById('page-services')?.classList.contains('active')) renderServices();
-  showToast('Invoice Generated', data.invoiceNo+' — '+fmtMoney(total), 'success');
-  bootstrap.Modal.getInstance(document.getElementById('invoiceModal')).hide();
-  setTimeout(()=>previewInvoice(data.id), 350);
-});
-
-function deleteInvoice(id){
-  const inv = DB.invoices.find(x=>x.id===id);
-  if(!inv) return;
-  showConfirm('Delete Invoice?', `Delete invoice ${inv.invoiceNo}?`, function(){
-    DB.invoices = DB.invoices.filter(x=>x.id!==id);
-    logAudit('Delete','Invoice', `Deleted invoice ${inv.invoiceNo}`);
-    saveDB(); renderInvoices();
-    if(typeof renderServices === 'function' && document.getElementById('page-services')?.classList.contains('active')) renderServices();
-    showToast('Invoice Deleted','Removed successfully.','success');
-  });
-}
-
-let currentPreviewInvoiceId = null;
-function previewInvoice(id){
-  const inv = DB.invoices.find(x=>x.id===id);
-  if(!inv) return;
-  currentPreviewInvoiceId = id;
-  const cust = DB.customers.find(c=>c.id===inv.customerId);
-  const s = DB.settings;
-  document.getElementById('invoicePreviewBody').innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #e08a1e;padding-bottom:16px;margin-bottom:20px;">
-      <div style="display:flex;gap:12px;align-items:center;">
-        ${s.logo ? `<img src="${s.logo}" style="width:54px;height:54px;border-radius:10px;object-fit:cover;">` : ''}
-        <div>
-          <div style="font-size:20px;font-weight:800;color:#16203a;">${escapeHtml(s.companyName||'SevaERP')}</div>
-          <div style="font-size:12px;color:#666;">${escapeHtml(s.companyAddress||'')}</div>
-          <div style="font-size:12px;color:#666;">${s.companyPhone?('Ph: '+escapeHtml(s.companyPhone)):''} ${s.companyGstin?(' | GSTIN: '+escapeHtml(s.companyGstin)):''}</div>
-        </div>
-      </div>
-      <div style="text-align:right;">
-        <div style="font-size:22px;font-weight:800;color:#e08a1e;">INVOICE</div>
-        <div style="font-size:12.5px;"><b>${escapeHtml(inv.invoiceNo)}</b></div>
-        <div style="font-size:12px;color:#666;">${fmtDate(inv.date)}</div>
-      </div>
-    </div>
-    <div style="margin-bottom:16px;">
-      <div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.5px;">Billed To</div>
-      <div style="font-size:14px;font-weight:700;">${escapeHtml(inv.customerName)}</div>
-      ${cust?`<div style="font-size:12.5px;color:#555;">${escapeHtml(cust.mobile)} ${cust.address?(' · '+escapeHtml(cust.address)):''}</div>`:''}
-    </div>
-    <table style="width:100%;border-collapse:collapse;margin-bottom:18px;">
-      <thead><tr style="background:#f6f5f1;"><th style="text-align:left;padding:8px;font-size:11.5px;border-bottom:1px solid #ddd;">#</th><th style="text-align:left;padding:8px;font-size:11.5px;border-bottom:1px solid #ddd;">Description</th><th style="text-align:center;padding:8px;font-size:11.5px;border-bottom:1px solid #ddd;">Qty</th><th style="text-align:right;padding:8px;font-size:11.5px;border-bottom:1px solid #ddd;">Rate</th><th style="text-align:right;padding:8px;font-size:11.5px;border-bottom:1px solid #ddd;">Amount</th></tr></thead>
-      <tbody>${inv.items.map((it,idx)=>`<tr><td style="padding:8px;border-bottom:1px solid #eee;font-size:13px;">${idx+1}</td><td style="padding:8px;border-bottom:1px solid #eee;font-size:13px;">${escapeHtml(it.desc)}</td><td style="text-align:center;padding:8px;border-bottom:1px solid #eee;font-size:13px;">${it.qty}</td><td style="text-align:right;padding:8px;border-bottom:1px solid #eee;font-size:13px;">${fmtMoney(it.rate)}</td><td style="text-align:right;padding:8px;border-bottom:1px solid #eee;font-size:13px;">${fmtMoney(it.amount)}</td></tr>`).join('')}</tbody>
-    </table>
-    <div style="display:flex;justify-content:flex-end;">
-      <div style="width:240px;">
-        <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:2px solid #16203a;font-size:16px;font-weight:800;"><span>Total</span><span>${fmtMoney(inv.total)}</span></div>
-      </div>
-    </div>
-    <div style="margin-top:30px;font-size:11.5px;color:#999;text-align:center;">Thank you for your business! · Generated via SevaERP</div>
-  `;
-  new bootstrap.Modal(document.getElementById('invoicePreviewModal')).show();
-}
-function printInvoicePreview(){
-  const content = document.getElementById('invoicePreviewBody').innerHTML;
-  const w = window.open('', '_blank');
-  w.document.write(`<html><head><title>Invoice</title><meta charset="utf-8"><style>body{font-family:Arial,sans-serif;color:#111;padding:20px;}</style></head><body>${content}
-<!-- SERVICE INVOICE MODAL -->
-<div class="modal fade" id="serviceInvoiceModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="sInvModalTitle">New Service Invoice</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <form id="serviceInvoiceForm">
-          <input type="hidden" id="sInvId">
-          <input type="hidden" id="sInvUuid">
-          <div class="row g-3 mb-3">
-            <div class="col-md-4">
-              <label class="form-label">Invoice No.</label>
-              <input type="text" class="form-control mono" id="sInvNo" readonly placeholder="Auto-generated">
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Invoice Date *</label>
-              <input type="date" class="form-control" id="sInvDate" required>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Status</label>
-              <select class="form-select" id="sInvStatus"><option>Unpaid</option><option>Partial</option><option>Paid</option></select>
-            </div>
-          </div>
-          <div class="row g-3 mb-3">
-            <div class="col-md-6">
-              <label class="form-label">Customer *</label>
-              <select class="form-select" id="sInvCustomer" required>
-                <option value="">-- Select Customer --</option>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Service</label>
-              <input type="text" class="form-control" id="sInvServiceName" placeholder="Service / description">
-            </div>
-          </div>
-          <div class="row g-3 mb-3">
-            <div class="col-md-3">
-              <label class="form-label">Subtotal (₹)</label>
-              <input type="number" class="form-control" id="sInvSubtotal" min="0" value="0" oninput="calcSInvTotals()">
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">GST %</label>
-              <select class="form-select" id="sInvGstPct" onchange="calcSInvTotals()">
-                <option value="0">0%</option><option value="5">5%</option>
-                <option value="12">12%</option><option value="18">18%</option><option value="28">28%</option>
-              </select>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">Discount (₹)</label>
-              <input type="number" class="form-control" id="sInvDiscount" min="0" value="0" oninput="calcSInvTotals()">
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">Total (₹)</label>
-              <input type="text" class="form-control mono fw-bold" id="sInvTotal" readonly>
-            </div>
-          </div>
-          <div class="row g-3 mb-3">
-            <div class="col-md-4">
-              <label class="form-label">Amount Paid (₹)</label>
-              <input type="number" class="form-control" id="sInvPaid" min="0" value="0" oninput="calcSInvTotals()">
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Balance (₹)</label>
-              <input type="text" class="form-control mono" id="sInvBalance" readonly>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Payment Mode</label>
-              <select class="form-select" id="sInvPayMode"><option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option></select>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Notes</label>
-            <textarea class="form-control" id="sInvNotes" rows="2"></textarea>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-app" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-outline-app" onclick="printServiceInvoice()"><i class="fa-solid fa-print me-1"></i>Print</button>
-        <button type="button" class="btn btn-outline-app" onclick="downloadServiceInvoicePDF()"><i class="fa-solid fa-file-pdf me-1"></i>PDF</button>
-        <button type="button" class="btn btn-marigold" onclick="saveServiceInvoice()"><i class="fa-solid fa-check me-1"></i>Save Invoice</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-</body></html>`);
-  w.document.close();
-  setTimeout(()=>{ w.print(); }, 300);
-}
-function downloadInvoicePDF(){
-  const inv = DB.invoices.find(x=>x.id===currentPreviewInvoiceId);
-  if(!inv) return;
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  doc.setFontSize(18); doc.setTextColor(224,138,30); doc.text('INVOICE', 14, 18);
-  doc.setFontSize(10); doc.setTextColor(80,80,80);
-  doc.text(DB.settings.companyName||'SevaERP', 14, 26);
-  doc.text(inv.invoiceNo+'   '+fmtDate(inv.date), 150, 18);
-  doc.text('Billed To: '+inv.customerName, 14, 34);
-  const rows = inv.items.map((it,idx)=>[idx+1, it.desc, it.qty, fmtMoney(it.rate), fmtMoney(it.amount)]);
-  doc.autoTable({ startY:42, head:[['#','Description','Qty','Rate','Amount']], body: rows, theme:'grid', headStyles:{fillColor:[224,138,30]} });
-  const finalY = doc.lastAutoTable.finalY || 50;
-  doc.setFontSize(13); doc.setTextColor(20,20,20);
-  doc.text('Total: '+fmtMoney(inv.total), 150, finalY+12);
-  doc.save(inv.invoiceNo+'.pdf');
-  showToast('PDF Downloaded', inv.invoiceNo+'.pdf', 'success');
-}
+// Patch renderPage to call renderChits for page-chits
 /* ====================================================================
    INVENTORY MODULE
 ==================================================================== */
