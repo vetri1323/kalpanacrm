@@ -428,6 +428,83 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
   .kpi-card .kpi-value{font-size:21px;}
   .topbar .page-sub{display:none;}
 }
+
+/* ===== Service Catalog Record Navigation ===== */
+.record-navigation {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface-2, #f8f7f4);
+  border: 1px solid var(--border-soft, #e8e4da);
+  border-radius: 10px;
+  padding: 5px 8px;
+}
+.cat-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-2, #5b6478);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, transform 0.1s;
+  white-space: nowrap;
+  line-height: 1;
+}
+.cat-nav-btn:hover:not(:disabled) {
+  background: #f59e0b;
+  color: #fff;
+  transform: translateY(-1px);
+}
+.cat-nav-btn:active:not(:disabled) { transform: translateY(0); }
+.cat-nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.cat-nav-btn i { font-size: 11px; }
+.cat-nav-counter {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-1, #1a2236);
+  padding: 0 10px;
+  white-space: nowrap;
+  min-width: 110px;
+  text-align: center;
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border-soft, #e8e4da);
+  border-radius: 6px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+#catalogBody tr.cat-row-active {
+  background: linear-gradient(90deg, rgba(245,158,11,0.13) 0%, rgba(245,158,11,0.04) 100%) !important;
+  outline: 2px solid #f59e0b;
+  outline-offset: -2px;
+}
+#catalogBody tr.cat-row-active td:first-child { border-left: 3px solid #f59e0b; }
+.cat-search-hl {
+  background: rgba(245,158,11,0.28);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+@media (max-width: 500px) {
+  .cat-nav-label { display: none; }
+  .cat-nav-btn   { padding: 5px 9px; }
+  .cat-nav-counter { min-width: 80px; font-size: 11px; }
+}
+#catalogTable thead tr th:first-child,
+#catalogBody tr td:first-child {
+  color: var(--text-3);
+  font-size: 11px;
+  text-align: center;
+  width: 36px;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
 </style>
 </head>
 <body>
@@ -2129,30 +2206,67 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
 
 <!-- SERVICE CATALOG LIST MODAL (browse / search / manage) -->
 <div class="modal fade" id="catalogListModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header pb-2">
         <div>
-          <h5 class="modal-title">Service Catalog</h5>
-          <div style="font-size:11.5px;color:var(--text-3);margin-top:2px;">Master list of service names and their government portal links</div>
+          <h5 class="modal-title"><i class="fa-solid fa-list-ul me-2" style="color:var(--marigold);"></i>Service Catalog</h5>
+          <div style="font-size:11.5px;color:var(--text-3);margin-top:2px;">Master list of service names and government portal links</div>
         </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body">
-        <div class="filter-bar">
-          <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="form-control" id="catalogSearch" placeholder="Search service name..."></div>
-          <button class="btn btn-marigold ms-auto" onclick="openCatalogModal()"><i class="fa-solid fa-plus me-1"></i>Add Service</button>
+      <div class="modal-body pt-2 pb-1">
+        <!-- Filter bar -->
+        <div class="filter-bar mb-3">
+          <div class="search-box" style="flex:1;min-width:180px;">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" class="form-control" id="catalogSearch" placeholder="Search service name or URL...">
+          </div>
+          <div id="catalogSearchCount" style="font-size:12px;color:var(--text-3);white-space:nowrap;align-self:center;"></div>
+          <button class="btn btn-marigold ms-auto" onclick="openCatalogModal()">
+            <i class="fa-solid fa-plus me-1"></i>Add Service
+          </button>
         </div>
-        <div class="table-responsive-app">
+        <!-- Table -->
+        <div class="table-responsive-app" id="catalogTableWrap">
           <table class="table-app mb-0" id="catalogTable">
-            <thead><tr><th>Service Name</th><th>Portal URL</th><th>Used In</th><th class="text-end">Actions</th></tr></thead>
+            <thead>
+              <tr>
+                <th style="width:36px;">#</th>
+                <th>Service Name</th>
+                <th>Portal URL</th>
+                <th>Used In</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
             <tbody id="catalogBody"></tbody>
           </table>
         </div>
-        <div id="catalogEmpty" class="empty-state d-none"><i class="fa-solid fa-list-ul"></i><h6>No services in catalog</h6><p>Add a service name with its portal link to get started.</p></div>
+        <div id="catalogEmpty" class="empty-state d-none">
+          <i class="fa-solid fa-list-ul"></i>
+          <h6>No services found</h6>
+          <p>Try a different search term or add a new service.</p>
+        </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-app" data-bs-dismiss="modal">Close</button>
+      <!-- Footer: navigation + close -->
+      <div class="modal-footer d-flex align-items-center flex-wrap gap-2 pt-2 pb-2">
+        <!-- Record Navigation -->
+        <div class="record-navigation" id="catalogNavBar">
+          <button class="cat-nav-btn" id="catFirstBtn" onclick="catalogNav('first')" title="First Record (Home)">
+            <i class="fa-solid fa-backward-step"></i><span class="cat-nav-label">First</span>
+          </button>
+          <button class="cat-nav-btn" id="catPrevBtn" onclick="catalogNav('prev')" title="Previous Record (← Arrow)">
+            <i class="fa-solid fa-chevron-left"></i><span class="cat-nav-label">Prev</span>
+          </button>
+          <span id="catalogRecordCounter" class="cat-nav-counter">Record 0 of 0</span>
+          <button class="cat-nav-btn" id="catNextBtn" onclick="catalogNav('next')" title="Next Record (→ Arrow)">
+            <span class="cat-nav-label">Next</span><i class="fa-solid fa-chevron-right"></i>
+          </button>
+          <button class="cat-nav-btn" id="catLastBtn" onclick="catalogNav('last')" title="Last Record (End)">
+            <span class="cat-nav-label">Last</span><i class="fa-solid fa-forward-step"></i>
+          </button>
+        </div>
+        <button type="button" class="btn btn-outline-app ms-auto" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
@@ -2631,33 +2745,7 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
       </div>
     </div>
   </div>
-</div>l" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title" id="chitPayModalTitle">Record Installment</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-      <form id="chitPaymentForm">
-        <div class="modal-body">
-          <input type="hidden" id="chitPayRecId">
-          <input type="hidden" id="chitPayId">
-          <div class="row g-3">
-            <div class="col-12"><label class="form-label">Chit</label><select class="form-select" id="chitPayChitSelect"></select></div>
-            <div class="col-md-6"><label class="form-label">Payment Date <span class="required-star">*</span></label><input type="date" class="form-control" id="chitPayDate" required></div>
-            <div class="col-md-6"><label class="form-label">Installment No.</label><input type="number" class="form-control" id="chitPayInstNo" placeholder="Auto" min="1"></div>
-            <div class="col-md-6"><label class="form-label">Amount (₹) <span class="required-star">*</span></label><input type="number" step="0.01" min="0" class="form-control" id="chitPayAmount" required></div>
-            <div class="col-md-6"><label class="form-label">Payment Mode</label>
-              <select class="form-select" id="chitPayMode"><option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option></select>
-            </div>
-            <div class="col-12"><label class="form-label">Notes</label><input type="text" class="form-control" id="chitPayNotes" placeholder="Optional remarks"></div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-app" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-marigold" onclick="saveChitPayment()"><i class="fa-solid fa-floppy-disk me-1"></i>Record Payment</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
+ 
 <!-- INVOICE MODAL -->
 <div class="modal fade" id="invoiceModal" tabindex="-1">
   <div class="modal-dialog modal-lg">
@@ -3146,153 +3234,21 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);color:var(--text-1);margin:0;}
 const DB_KEY = 'sevaerp_db';
 const SESSION_KEY = 'sevaerp_session';
 const SYNC_CFG_KEY = 'sevaerp_sync_cfg'; // {url, autoSync, lastSyncedAt, lastSyncStatus}
-const APPS_SCRIPT_SOURCE = `/*****************************************************************
- * SevaERP — Google Sheets Backend (Apps Script)
- * -----------------------------------------------------------------
- * This script turns a Google Sheet into the live backend for the
- * SevaERP web app. SevaERP keeps its full database as one JSON
- * object — this script just stores/retrieves that JSON object in
- * a sheet named "SevaERP_DB", and keeps a row-per-save Backup
- * History tab as a safety net.
- *
- * SETUP
- * 1. Go to https://sheets.google.com and create a new blank sheet.
- *    Name it anything you like, e.g. "SevaERP Data".
- * 2. In that sheet, open Extensions -> Apps Script.
- * 3. Delete anything in the editor and paste this entire file in.
- * 4. Click Deploy -> New deployment.
- *      - Click the gear icon next to "Select type" and choose "Web app".
- *      - Description: SevaERP Backend (or anything).
- *      - Execute as: Me.
- *      - Who has access: Anyone.
- * 5. Click Deploy. Authorize the app when prompted (it's your own
- *    script, acting on your own sheet — this warning is normal).
- * 6. Copy the "Web app URL" you are given — it looks like:
- *      https://script.google.com/macros/s/XXXXXXXXXXXX/exec
- * 7. Paste that URL into SevaERP -> Settings -> Google Sheet Sync.
- *
- * If you ever edit this script again, you must create a NEW
- * deployment version (Deploy -> Manage deployments -> Edit -> New
- * version) for the changes to take effect on the existing URL.
- *****************************************************************/
-
-var SHEET_NAME = 'SevaERP_DB';
-var HISTORY_SHEET_NAME = 'SevaERP_Backup_History';
-var MAX_HISTORY_ROWS = 20;
-
-function doGet(e) {
-  try {
-    var action = (e.parameter && e.parameter.action) || 'load';
-    if (action === 'ping') {
-      return jsonOut({ ok: true, message: 'SevaERP backend is reachable.' });
-    }
-    if (action === 'load') {
-      return jsonOut(loadSnapshot());
-    }
-    return jsonOut({ ok: false, error: 'Unknown action: ' + action });
-  } catch (err) {
-    return jsonOut({ ok: false, error: String(err) });
-  }
-}
-
-function doPost(e) {
-  try {
-    if (!e.postData || !e.postData.contents) {
-      return jsonOut({ ok: false, error: 'No data received.' });
-    }
-    var body = JSON.parse(e.postData.contents);
-    var action = body.action || 'save';
-
-    if (action === 'save') {
-      return jsonOut(saveSnapshot(body.data, body.savedAt, body.savedBy));
-    }
-    return jsonOut({ ok: false, error: 'Unknown action: ' + action });
-  } catch (err) {
-    return jsonOut({ ok: false, error: String(err) });
-  }
-}
-
-function getDbSheet_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName(SHEET_NAME);
-  if (!sheet) {
-    sheet = ss.insertSheet(SHEET_NAME);
-    sheet.getRange(1, 1, 1, 3).setValues([['SavedAt', 'SavedBy', 'JSON']]);
-    sheet.setColumnWidth(3, 600);
-  }
-  return sheet;
-}
-
-function getHistorySheet_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName(HISTORY_SHEET_NAME);
-  if (!sheet) {
-    sheet = ss.insertSheet(HISTORY_SHEET_NAME);
-    sheet.getRange(1, 1, 1, 3).setValues([['SavedAt', 'SavedBy', 'JSON']]);
-    sheet.setColumnWidth(3, 600);
-  }
-  return sheet;
-}
-
-function loadSnapshot() {
-  var sheet = getDbSheet_();
-  var lastRow = sheet.getLastRow();
-  if (lastRow < 2) {
-    return { ok: true, empty: true, data: null };
-  }
-  var row = sheet.getRange(lastRow, 1, 1, 3).getValues()[0];
-  var savedAt = row[0];
-  var savedBy = row[1];
-  var json = row[2];
-  var data = null;
-  try {
-    data = JSON.parse(json);
-  } catch (parseErr) {
-    return { ok: false, error: 'Stored data could not be parsed: ' + parseErr };
-  }
-  return { ok: true, empty: false, savedAt: savedAt, savedBy: savedBy, data: data };
-}
-
-function saveSnapshot(data, savedAt, savedBy) {
-  if (!data) {
-    return { ok: false, error: 'No data payload provided.' };
-  }
-  var json = JSON.stringify(data);
-
-  // Apps Script / Sheets cells max out around 50,000 characters.
-  // Warn clearly instead of silently truncating/corrupting data.
-  if (json.length > 45000) {
-    return {
-      ok: false,
-      error: 'Data is too large for a single Google Sheet cell (' + json.length +
-        ' characters). Large attachments (documents, logo, machine photos) are ' +
-        'already excluded from sync automatically — if you still see this, ' +
-        'try clearing old Audit Log entries or contact support.'
-    };
-  }
-
-  var when = savedAt || new Date().toISOString();
-  var who = savedBy || 'unknown';
-
-  var sheet = getDbSheet_();
-  // Single-row "latest snapshot" model: row 2 always holds the current state.
-  sheet.getRange(2, 1, 1, 3).setValues([[when, who, json]]);
-
-  // Keep a rolling backup history (separate tab) so a bad save is recoverable.
-  var history = getHistorySheet_();
-  history.appendRow([when, who, json]);
-  var lastRow = history.getLastRow();
-  if (lastRow > MAX_HISTORY_ROWS + 1) {
-    history.deleteRows(2, lastRow - (MAX_HISTORY_ROWS + 1));
-  }
-
-  return { ok: true, savedAt: when };
-}
-
-function jsonOut(obj) {
-  return ContentService.createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
-}
+const APPS_SCRIPT_SOURCE = `// ============================================================
+// SevaERP Enterprise v3.0 — Google Apps Script Backend
+// ============================================================
+// SETUP INSTRUCTIONS:
+// 1. Open Google Sheets → Extensions → Apps Script
+// 2. Paste the provided Code.gs file (SevaERP_Enterprise_Code.gs)
+// 3. Run setup() once to create all sheets
+// 4. Deploy → New Deployment → Web App
+//    Execute as: Me | Who has access: Anyone
+// 5. Copy the Web App URL → paste below in Settings → Google Sheet Sync
+//
+// This version uses row-per-record storage for efficient delta sync.
+// Each module (Customers, Services, etc.) gets its own sheet tab.
+// ============================================================
+// See the Code.gs file provided alongside this HTML file.
 `;
 
 const DEFAULT_DB = {
@@ -3362,11 +3318,7 @@ const DEFAULT_DB = {
   ],
   auditLog: [],
   serviceInvoices: [],
-  invoices: [],
-  bankTxns: [],
   cashbookManual: [],
-  emiPayments: [],
-  chitPayments: [],
   billReminders: [],
   printerRenewals: [],
   notifications: []
@@ -3399,15 +3351,17 @@ function loadDB(){
 
 // Sheet name map: DB local key → Google Sheet name
 const DB_TO_SHEET = {
-  customers:'Customers', services:'Services', invoices:'ServiceInvoices',
+  customers:'Customers', services:'Services', serviceInvoices:'ServiceInvoices',
+  invoices:'Invoices',
   income:'Income', expense:'Expense', loans:'Loans', emiPayments:'EMI',
-  chits:'Chits', chitPayments:'Chits', bankTxns:'Bank', cashbookManual:'Cashbook',
+  chits:'Chits', chitPayments:'ChitPayments', bankTxns:'Bank', cashbookManual:'Cashbook',
   inventory:'Inventory', staff:'Staff', attendance:'Attendance',
   payroll:'Payroll', leads:'Leads', reminders:'Reminders', documents:'Documents',
-  tasks:'Tasks', machines:'Machines', printerReadings:'PrinterReadings',
+  tasks:'Tasks', machines:'Machines', printers:'Printers',
+  printerReadings:'PrinterReadings', printerServices:'PrinterServices',
   machineServices:'MachineService', maintenanceSchedule:'Maintenance',
-  auditLog:'AuditLogs', notifications:'Notifications', serviceInvoices:'ServiceInvoices',
-  billReminders:'Bill_Reminders', printerRenewals:'Printer_Renewals',
+  auditLog:'AuditLogs', notifications:'Notifications',
+  billReminders:'BillReminders', printerRenewals:'PrinterRenewals',
 };
 
 // Snapshot of last-saved state per collection (uuid→updatedAt)
@@ -3678,18 +3632,35 @@ async function callAppsScript(params, body=null){
   const url = syncCfg.url + (syncCfg.url.includes('?')?'&':'?') + new URLSearchParams(params).toString();
   const options = { method: body ? 'POST' : 'GET', redirect: 'follow' };
   if(body){
-    // Apps Script requires text/plain for POST to avoid CORS preflight
     options.headers = {'Content-Type':'text/plain;charset=utf-8'};
     options.body = JSON.stringify(body);
   }
-  const res = await fetch(url, options);
+  const controller = new AbortController();
+  const timer = setTimeout(()=>controller.abort(), 30000);
+  options.signal = controller.signal;
+  let res;
+  try{
+    res = await fetch(url, options);
+  }catch(err){
+    clearTimeout(timer);
+    if(err.name==='AbortError') throw new Error('Request timed out after 30s');
+    throw new Error('Network error: '+err.message);
+  }
+  clearTimeout(timer);
   if(!res.ok) throw new Error('HTTP '+res.status+' — check Web App deployment');
   const text = await res.text();
   let json;
   try{ json = JSON.parse(text); }
-  catch(e){ throw new Error('Invalid response from Apps Script. Check deployment settings.'); }
-  if(!json.success && json.error) throw new Error(json.error);
-  return json.result;
+  catch(e){ throw new Error('Invalid JSON response from Apps Script. Check deployment settings.'); }
+  // New Code.gs returns {success:true, result:{...}}
+  // Old backend returns {ok:true, data:...}
+  if(json.success !== undefined){
+    if(!json.success && json.error) throw new Error(json.error);
+    return json.result;
+  }
+  // Legacy format
+  if(json.ok === false && json.error) throw new Error(json.error);
+  return json;
 }
 
 // ── Push local pending changes ─────────────────────────────────────
@@ -3813,16 +3784,20 @@ function applyCloudDelta(remoteData){
   // Cloud sheet name → local DB key
   const MAP = {
     Customers:'customers', Services:'services',
-    ServiceInvoices:'serviceInvoices',
+    ServiceInvoices:'serviceInvoices', Invoices:'invoices',
     Income:'income', Expense:'expense',
     Loans:'loans', EMI:'emiPayments',
-    Chits:'chits', Cashbook:'cashbookManual', Bank:'bankTxns',
+    Chits:'chits', ChitPayments:'chitPayments',
+    Cashbook:'cashbookManual', Bank:'bankTxns',
     Inventory:'inventory', Staff:'staff', Attendance:'attendance',
     Payroll:'payroll', Leads:'leads', Reminders:'reminders',
     Documents:'documents', Tasks:'tasks', Machines:'machines',
-    PrinterReadings:'printerReadings', MachineService:'machineServices',
+    Printers:'printers', PrinterReadings:'printerReadings',
+    PrinterServices:'printerServices',
+    MachineService:'machineServices',
     Maintenance:'maintenanceSchedule', Notifications:'notifications',
     AuditLogs:'auditLog',
+    BillReminders:'billReminders', PrinterRenewals:'printerRenewals',
   };
 
   Object.entries(MAP).forEach(([cloudKey, localKey])=>{
@@ -3951,14 +3926,19 @@ async function pushAllLocalData(){
   // Build changes object from all local collections
   const PUSH_MAP = {
     Customers:'customers', Services:'services', ServiceInvoices:'serviceInvoices',
-    Income:'income', Expense:'expense', Loans:'loans', EMI:'emiPayments',
-    Chits:'chits', Cashbook:'cashbookManual', Bank:'bankTxns',
+    Invoices:'invoices', Income:'income', Expense:'expense',
+    Loans:'loans', EMI:'emiPayments',
+    Chits:'chits', ChitPayments:'chitPayments',
+    Cashbook:'cashbookManual', Bank:'bankTxns',
     Inventory:'inventory', Staff:'staff', Attendance:'attendance',
     Payroll:'payroll', Leads:'leads', Reminders:'reminders',
     Documents:'documents', Tasks:'tasks', Machines:'machines',
-    PrinterReadings:'printerReadings', MachineService:'machineServices',
+    Printers:'printers', PrinterReadings:'printerReadings',
+    PrinterServices:'printerServices',
+    MachineService:'machineServices',
     Maintenance:'maintenanceSchedule', Notifications:'notifications',
     AuditLogs:'auditLog',
+    BillReminders:'billReminders', PrinterRenewals:'printerRenewals',
   };
   const changes = {};
   const now = new Date().toISOString();
@@ -4031,7 +4011,7 @@ function copyAppsScriptCode(){
 }
 function populateAppsScriptCodeBox(){
   const box = document.getElementById('appsScriptCodeBox');
-  if(box) box.value = typeof APPS_SCRIPT_SOURCE!=='undefined' ? APPS_SCRIPT_SOURCE : '// See the separately provided Code.gs file';
+  if(box) box.value = typeof APPS_SCRIPT_SOURCE!=='undefined' ? APPS_SCRIPT_SOURCE : '// See the Code.gs file provided with this HTML file.';
 }
 
 // ── Notification System ───────────────────────────────────────────
@@ -4265,11 +4245,18 @@ function showToast(title, msg, type='info'){
 
 /* ===================== AUDIT LOG ===================== */
 function logAudit(action, module, detail){
+  if(!DB) return;
+  if(!DB.auditLog) DB.auditLog=[];
+  if(!DB.meta.nextAuditId) DB.meta.nextAuditId=1;
+  const sess = getSession()||{};
   DB.auditLog.unshift({
+    uuid: generateUUID(),
     id: DB.meta.nextAuditId++,
     ts: Date.now(),
-    user: (getSession()||{}).username || 'admin',
-    action, module, detail
+    user: sess.username || 'admin',
+    action, module, detail,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   });
   if(DB.auditLog.length > 1000) DB.auditLog = DB.auditLog.slice(0,1000);
   saveDB();
@@ -4377,46 +4364,44 @@ function navigateTo(page){
 }
 
 function renderPage(page){
-  if(!DB) return; // safety guard — DB not yet loaded
-  try{
-    switch(page){
-      case 'dashboard':      renderDashboard(); break;
-      case 'customers':      renderCustomers(); break;
-      case 'services':       renderServices(); break;
-      case 'reminders':      renderReminders(); break;
-      case 'leads':          renderLeads(); break;
-      case 'income':         renderIncome(); break;
-      case 'expense':        renderExpense(); break;
-      case 'cashbook':       renderCashbook(); break;
-      case 'bank':           renderBank(); break;
-      case 'loans':          renderLoans(); break;
-      case 'chits':          renderChits(); break;
-      case 'invoice':        renderInvoices(); break;
-      case 'inventory':      renderInventory(); break;
-      case 'tasks':          renderTasks(); break;
-      case 'documents':      renderDocuments(); break;
-      case 'staff':          renderStaff(); break;
-      case 'attendance':     renderAttendancePage(); break;
-      case 'payroll':        renderPayroll(); break;
-      case 'marketing':      renderMarketing(); break;
-      case 'machdash':       renderMachineDashboard(); break;
-      case 'machines':       renderMachines(); break;
-      case 'warranty':       renderWarrantyTracker(); break;
-      case 'printerreading': renderPrinterReading(); break;
-      case 'machservice':    renderMachineServiceHistory(); break;
-      case 'maintenance':    renderMaintenanceSchedule(); break;
-      case 'machreports':    /* generated on demand */ break;
-      case 'reports':        /* generated on demand */ break;
-      case 'auditlog':       renderAuditLog(); break;
-      case 'serviceinvoices':renderServiceInvoices(); break;
-      case 'billreminders':  renderBillReminders(); break;
-      case 'printerrenewal': renderPrinterRenewal(); break;
-      case 'settings':       renderSettings(); break;
-    }
-    try{ renderNotifications(); }catch(e){}
-  }catch(e){
-    console.error('renderPage('+page+') error:', e);
+  if(!DB) return;
+  _ensureDBCollections();
+  const _safeRender = (fn, name) => { try{ fn(); }catch(e){ console.error('render '+name+' error:',e); } };
+  switch(page){
+    case 'dashboard':      _safeRender(renderDashboard,'dashboard'); break;
+    case 'customers':      _safeRender(renderCustomers,'customers'); break;
+    case 'services':       _safeRender(renderServices,'services'); break;
+    case 'reminders':      _safeRender(renderReminders,'reminders'); break;
+    case 'leads':          _safeRender(renderLeads,'leads'); break;
+    case 'income':         _safeRender(renderIncome,'income'); break;
+    case 'expense':        _safeRender(renderExpense,'expense'); break;
+    case 'cashbook':       _safeRender(renderCashbook,'cashbook'); break;
+    case 'bank':           _safeRender(renderBank,'bank'); break;
+    case 'loans':          _safeRender(renderLoans,'loans'); break;
+    case 'chits':          _safeRender(renderChits,'chits'); break;
+    case 'invoice':        _safeRender(renderInvoices,'invoices'); break;
+    case 'inventory':      _safeRender(renderInventory,'inventory'); break;
+    case 'tasks':          _safeRender(renderTasks,'tasks'); break;
+    case 'documents':      _safeRender(renderDocuments,'documents'); break;
+    case 'staff':          _safeRender(renderStaff,'staff'); break;
+    case 'attendance':     _safeRender(renderAttendancePage,'attendance'); break;
+    case 'payroll':        _safeRender(renderPayroll,'payroll'); break;
+    case 'marketing':      _safeRender(renderMarketing,'marketing'); break;
+    case 'machdash':       _safeRender(renderMachineDashboard,'machdash'); break;
+    case 'machines':       _safeRender(renderMachines,'machines'); break;
+    case 'warranty':       _safeRender(renderWarrantyTracker,'warranty'); break;
+    case 'printerreading': _safeRender(renderPrinterReading,'printerreading'); break;
+    case 'machservice':    _safeRender(renderMachineServiceHistory,'machservice'); break;
+    case 'maintenance':    _safeRender(renderMaintenanceSchedule,'maintenance'); break;
+    case 'machreports':    /* generated on demand */ break;
+    case 'reports':        /* generated on demand */ break;
+    case 'auditlog':       _safeRender(renderAuditLog,'auditlog'); break;
+    case 'serviceinvoices':_safeRender(renderServiceInvoices,'serviceinvoices'); break;
+    case 'billreminders':  _safeRender(renderBillReminders,'billreminders'); break;
+    case 'printerrenewal': _safeRender(renderPrinterRenewal,'printerrenewal'); break;
+    case 'settings':       _safeRender(renderSettings,'settings'); break;
   }
+  _safeRender(renderNotifications,'notifications');
 }
 
 document.addEventListener('click', function(e){
@@ -4490,28 +4475,26 @@ document.getElementById('loginForm').addEventListener('submit', function(e){
 /* ===================== APP BOOT ===================== */
 function bootApp(){
   try{
-    // Ensure all required DB arrays exist before rendering
     _ensureDBCollections();
+    normaliseDateFields();
+    ensureUUIDs();
 
     document.getElementById('loginScreen').classList.add('d-none');
     document.getElementById('appShell').classList.remove('d-none');
 
     try{ applyTheme(DB.settings.theme || 'light'); }catch(e){}
-
     try{ document.getElementById('sbCompanyName').textContent = DB.settings.companyName || 'SevaERP'; }catch(e){}
-
     try{
       const sess = getSession();
       if(sess){
-        document.getElementById('profileName').textContent = sess.username.charAt(0).toUpperCase()+sess.username.slice(1);
-        document.getElementById('avatarChip').textContent  = sess.username.charAt(0).toUpperCase();
+        const uname = sess.username||'admin';
+        document.getElementById('profileName').textContent = uname.charAt(0).toUpperCase()+uname.slice(1);
+        document.getElementById('avatarChip').textContent  = uname.charAt(0).toUpperCase();
       }
     }catch(e){}
 
     try{ populateAllDropdowns(); }catch(e){ console.warn('populateAllDropdowns error:',e); }
-
-    try{ navigateTo('dashboard'); }catch(e){ console.warn('navigateTo dashboard error:',e); }
-
+    try{ navigateTo('dashboard'); }catch(e){ console.warn('navigateTo error:',e); }
     try{ setSyncStatus(syncCfg.url ? 'idle' : 'idle'); }catch(e){}
     try{ renderSettingsSyncStatus(); }catch(e){}
 
@@ -4519,21 +4502,23 @@ function bootApp(){
       setSyncStatus('syncing');
       setTimeout(()=>{
         pullLatest(false).then(()=>{
-          try{ populateAllDropdowns(); }catch(e){}
+          try{ _ensureDBCollections(); populateAllDropdowns(); }catch(e){}
           try{ renderPage(getCurrentPage()); }catch(e){}
-        }).catch(e=>{ setSyncStatus('error'); });
-      }, 800);
+        }).catch(()=>{ setSyncStatus('error'); });
+      }, 1200);
     }
 
     setTimeout(()=>{ try{ resetSessionTimer(); }catch(e){} }, 1000);
     setTimeout(()=>{ try{ checkBillDueAlerts(); }catch(e){} }, 4000);
+    setTimeout(()=>{ try{ updateNotifBell(); }catch(e){} }, 500);
 
   }catch(err){
     console.error('bootApp error:', err);
-    // Show the app anyway even if something crashed
-    document.getElementById('loginScreen').classList.add('d-none');
-    document.getElementById('appShell').classList.remove('d-none');
-    try{ navigateTo('dashboard'); }catch(e){}
+    try{
+      document.getElementById('loginScreen').classList.add('d-none');
+      document.getElementById('appShell').classList.remove('d-none');
+      navigateTo('dashboard');
+    }catch(e){}
   }
 }
 
@@ -4545,7 +4530,7 @@ function _ensureDBCollections(){
     'inventory','staff','attendance','payroll','leads','reminders','documents',
     'tasks','machines','printers','printerReadings','printerServices',
     'machineServices','maintenanceSchedule','billReminders','printerRenewals',
-    'notifications','auditLog'];
+    'notifications','auditLog','serviceCatalog','templates'];
   arrays.forEach(k=>{ if(!Array.isArray(DB[k])) DB[k]=[]; });
   if(!DB.meta)     DB.meta={};
   if(!DB.settings) DB.settings={};
@@ -4603,31 +4588,36 @@ function populateAllDropdowns(){
 }
 
 window.addEventListener('DOMContentLoaded', function(){
-  try{ loadDB(); }catch(e){ console.error('loadDB error:', e); }
-  try{ loadSyncCfg(); }catch(e){}
-  // Ensure all collections exist immediately after load
-  try{ _ensureDBCollections(); }catch(e){}
-  if(DB && DB.settings && !DB.settings.sessionTimeout) DB.settings.sessionTimeout=0;
-  try{ populateAppsScriptCodeBox(); }catch(e){}
-  try{ if(typeof _buildSnapshot==='function') _dbSnapshot = _buildSnapshot(); }catch(e){}
-  try{ normaliseDateFields(); }catch(e){}
-  try{ ensureUUIDs(); }catch(e){}
-  try{ loadOfflineQueue(); }catch(e){}
-  try{ updateOfflineBanner(); }catch(e){}
+  const _safe = (fn, label) => { try{ fn(); }catch(e){ console.error('DOMContentLoaded '+label+' error:',e); } };
+  _safe(loadDB, 'loadDB');
+  _safe(loadSyncCfg, 'loadSyncCfg');
+  _safe(_ensureDBCollections, '_ensureDBCollections');
+  _safe(()=>{ if(DB&&DB.settings&&!('sessionTimeout' in DB.settings)) DB.settings.sessionTimeout=0; }, 'sessionTimeout');
+  _safe(populateAppsScriptCodeBox, 'populateAppsScriptCodeBox');
+  _safe(()=>{ if(typeof _buildSnapshot==='function') _dbSnapshot=_buildSnapshot(); }, '_buildSnapshot');
+  _safe(normaliseDateFields, 'normaliseDateFields');
+  _safe(ensureUUIDs, 'ensureUUIDs');
+  _safe(loadOfflineQueue, 'loadOfflineQueue');
+  _safe(updateOfflineBanner, 'updateOfflineBanner');
+
   if(syncCfg.url && syncCfg.autoSync && navigator.onLine){
-    try{ startAutoSync(); }catch(e){}
-    setTimeout(()=>{ try{ doFullSync(false); }catch(e){} }, 2000);
+    _safe(startAutoSync, 'startAutoSync');
+    setTimeout(()=>{ _safe(()=>doFullSync(false),'doFullSync'); }, 2500);
   }
-  setTimeout(()=>{ try{ runAllAlertCheckers(); }catch(e){} }, 3000);
-  setInterval(()=>{ try{ runAllAlertCheckers(); }catch(e){} }, 3600000);
+  setTimeout(()=>{ _safe(runAllAlertCheckers,'runAllAlertCheckers'); }, 3500);
+  setInterval(()=>{ _safe(runAllAlertCheckers,'runAllAlertCheckers-interval'); }, 3600000);
+
   // Set today's date on all date inputs
   ['svcAppliedDate','incDate','expDate','bankTxnDate','emiDate','chitPayDate','invDate',
-   'payrollDate','attendanceDate','readingDate','msServiceDate','maintServiceDate'].forEach(id=>{
-    const el = document.getElementById(id); if(el) el.value = todayStr();
+   'payrollDate','attendanceDate','readingDate','msServiceDate','maintServiceDate',
+   'msNextServiceDate','leadFollowup','remDate','loanStartDate'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el && !el.value) el.value = todayStr();
   });
+
   // Auto-login if session exists
   const sess = getSession();
-  if(sess){ try{ bootApp(); }catch(e){ console.error('bootApp error on auto-login:', e); } }
+  if(sess){ _safe(bootApp,'bootApp-autologin'); }
 });
 /* ====================================================================
    FINANCIAL ENGINE
@@ -5413,46 +5403,208 @@ function deleteService(id){
    Accessed as a popup modal from the Services page (not a full page).
 ==================================================================== */
 
-/* Opens the Service Catalog as a browsable modal popup. */
+/* ====================================================================
+   SERVICE CATALOG MODULE — Enhanced with Record Navigation
+==================================================================== */
+
+// ── State ──────────────────────────────────────────────────────────────
+const _cat = {
+  list:       [],    // current filtered+sorted list
+  activeIdx:  0,     // 0-based index of highlighted row
+  modalOpen:  false, // track whether the modal is showing
+};
+
+// ── Keyboard handler (attached once) ──────────────────────────────────
+function _catKeyHandler(e){
+  if(!_cat.modalOpen) return;
+  // Don't intercept when user is typing in a search/input
+  if(document.activeElement && ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) {
+    if(document.activeElement.id === 'catalogSearch') {
+      // Allow typing in search, but still handle Home/End for navigation
+      if(e.key !== 'Home' && e.key !== 'End') return;
+    } else {
+      return;
+    }
+  }
+  const map = { ArrowLeft:'prev', ArrowRight:'next', Home:'first', End:'last' };
+  if(map[e.key]){ e.preventDefault(); catalogNav(map[e.key]); }
+}
+
+// Attach keyboard listener once
+document.addEventListener('keydown', _catKeyHandler);
+
+// Track modal open/close
+document.getElementById('catalogListModal').addEventListener('show.bs.modal',   ()=>{ _cat.modalOpen=true; });
+document.getElementById('catalogListModal').addEventListener('hidden.bs.modal',  ()=>{ _cat.modalOpen=false; });
+
+// ── Open modal ─────────────────────────────────────────────────────────
 function openCatalogListModal(){
   document.getElementById('catalogSearch').value = '';
+  _cat.activeIdx = 0;
   renderServiceCatalog();
   new bootstrap.Modal(document.getElementById('catalogListModal')).show();
 }
 
-function renderServiceCatalog(){
-  let list = [...DB.serviceCatalog];
-  const q = (document.getElementById('catalogSearch').value||'').toLowerCase();
-  if(q) list = list.filter(c => (c.name||'').toLowerCase().includes(q) || (c.url||'').toLowerCase().includes(q));
-  list.sort((a,b)=> a.name.localeCompare(b.name));
+// ── Highlight helper: add search term highlight ───────────────────────
+function _catHighlight(text, q){
+  if(!q || !text) return escapeHtml(text||'');
+  const safe = escapeHtml(text);
+  const safeQ = escapeHtml(q);
+  // Case-insensitive highlight without complex regex escaping
+  const lowerSafe = safe.toLowerCase();
+  const lowerQ    = safeQ.toLowerCase();
+  let result = '', idx = 0;
+  while(idx < safe.length){
+    const found = lowerSafe.indexOf(lowerQ, idx);
+    if(found === -1){ result += safe.slice(idx); break; }
+    result += safe.slice(idx, found)
+      + '<mark class="cat-search-hl">' + safe.slice(found, found+safeQ.length) + '</mark>';
+    idx = found + safeQ.length;
+  }
+  return result;
+}
 
-  const body = document.getElementById('catalogBody');
-  document.getElementById('catalogEmpty').classList.toggle('d-none', list.length>0);
-  body.innerHTML = list.map(c=>{
-    const usageCount = DB.services.filter(s=>s.serviceName===c.name).length;
-    return `<tr>
-      <td style="font-weight:700;">${escapeHtml(c.name)}</td>
-      <td>${c.url ? `<a href="${escapeHtml(c.url)}" target="_blank" rel="noopener" style="font-size:12.5px;"><i class="fa-solid fa-arrow-up-right-from-square me-1"></i>${escapeHtml(c.url)}</a>` : '<span style="color:var(--text-3);font-size:12px;">No link set</span>'}</td>
+// ── Main render ─────────────────────────────────────────────────────────
+function renderServiceCatalog(){
+  if(!DB) return;
+  const q = (document.getElementById('catalogSearch')?.value||'').toLowerCase().trim();
+
+  // Build filtered + sorted list
+  let list = [...(DB.serviceCatalog||[])];
+  if(q) list = list.filter(c=>(c.name||'').toLowerCase().includes(q)||(c.url||'').toLowerCase().includes(q));
+  list.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  _cat.list = list;
+
+  // Clamp active index to valid range
+  if(_cat.activeIdx >= list.length) _cat.activeIdx = Math.max(0, list.length-1);
+
+  // Search count label
+  const countEl = document.getElementById('catalogSearchCount');
+  if(countEl){
+    if(q) countEl.textContent = list.length + ' result' + (list.length!==1?'s':'') + ' for "'+q+'"';
+    else  countEl.textContent = '';
+  }
+
+  const body   = document.getElementById('catalogBody');
+  const emptyEl= document.getElementById('catalogEmpty');
+  if(emptyEl) emptyEl.classList.toggle('d-none', list.length>0);
+  if(!body) return;
+
+  if(!list.length){ body.innerHTML=''; _updateCatalogNav(); return; }
+
+  body.innerHTML = list.map((c, i)=>{
+    const usageCount = (DB.services||[]).filter(s=>s.serviceName===c.name).length;
+    const isActive   = i === _cat.activeIdx;
+    return `<tr data-cat-idx="${i}" data-cat-id="${c.id}"
+                class="${isActive?'cat-row-active':''}"
+                onclick="_catClickRow(${i})"
+                style="cursor:pointer;">
+      <td>${i+1}</td>
+      <td style="font-weight:700;">${_catHighlight(c.name||'', q)}</td>
+      <td>${c.url
+        ? `<a href="${escapeHtml(c.url)}" target="_blank" rel="noopener"
+              style="font-size:12.5px;" onclick="event.stopPropagation()">
+              <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>${_catHighlight(c.url, q)}
+           </a>`
+        : '<span style="color:var(--text-3);font-size:12px;">No link</span>'
+      }</td>
       <td><span class="badge-status bs-applied">${usageCount} service${usageCount===1?'':'s'}</span></td>
       <td class="text-end">
-        <button class="btn btn-outline-app btn-icon-sq" title="Edit" onclick="openCatalogModal(${c.id})"><i class="fa-solid fa-pen"></i></button>
-        <button class="btn btn-ghost-danger btn-icon-sq" title="Delete" onclick="deleteCatalogEntry(${c.id})"><i class="fa-solid fa-trash"></i></button>
+        <button class="btn btn-outline-app btn-icon-sq" title="Edit"
+          onclick="event.stopPropagation();openCatalogModal(${c.id})">
+          <i class="fa-solid fa-pen"></i>
+        </button>
+        <button class="btn btn-ghost-danger btn-icon-sq" title="Delete"
+          onclick="event.stopPropagation();deleteCatalogEntry(${c.id})">
+          <i class="fa-solid fa-trash"></i>
+        </button>
       </td>
     </tr>`;
   }).join('');
+
+  _updateCatalogNav();
+  // Scroll active row into view after short delay (paint must finish first)
+  setTimeout(()=>_scrollActiveCatRow(), 40);
 }
-document.getElementById('catalogSearch').addEventListener('input', renderServiceCatalog);
+
+// ── Row click handler ──────────────────────────────────────────────────
+function _catClickRow(idx){
+  _cat.activeIdx = idx;
+  _refreshCatHighlight();
+}
+
+// ── Refresh only the active highlight (no full re-render) ─────────────
+function _refreshCatHighlight(){
+  const rows = document.querySelectorAll('#catalogBody tr[data-cat-idx]');
+  rows.forEach(row=>{
+    const i = Number(row.dataset.catIdx);
+    row.classList.toggle('cat-row-active', i === _cat.activeIdx);
+  });
+  _updateCatalogNav();
+  _scrollActiveCatRow();
+}
+
+// ── Scroll active row into view ────────────────────────────────────────
+function _scrollActiveCatRow(){
+  const active = document.querySelector('#catalogBody tr.cat-row-active');
+  if(active){
+    active.scrollIntoView({ block:'nearest', behavior:'smooth' });
+  }
+}
+
+// ── Navigation counter + button state ─────────────────────────────────
+function _updateCatalogNav(){
+  const total   = _cat.list.length;
+  const current = total ? _cat.activeIdx + 1 : 0;
+  const counterEl = document.getElementById('catalogRecordCounter');
+  if(counterEl) counterEl.textContent = 'Record '+current+' of '+total;
+
+  const firstBtn = document.getElementById('catFirstBtn');
+  const prevBtn  = document.getElementById('catPrevBtn');
+  const nextBtn  = document.getElementById('catNextBtn');
+  const lastBtn  = document.getElementById('catLastBtn');
+  const isFirst  = _cat.activeIdx <= 0 || total === 0;
+  const isLast   = _cat.activeIdx >= total-1 || total === 0;
+  if(firstBtn) firstBtn.disabled = isFirst;
+  if(prevBtn)  prevBtn.disabled  = isFirst;
+  if(nextBtn)  nextBtn.disabled  = isLast;
+  if(lastBtn)  lastBtn.disabled  = isLast;
+}
+
+// ── Navigation actions ─────────────────────────────────────────────────
+function catalogNav(direction){
+  const total = _cat.list.length;
+  if(!total) return;
+  switch(direction){
+    case 'first': _cat.activeIdx = 0; break;
+    case 'prev':  _cat.activeIdx = Math.max(0, _cat.activeIdx-1); break;
+    case 'next':  _cat.activeIdx = Math.min(total-1, _cat.activeIdx+1); break;
+    case 'last':  _cat.activeIdx = total-1; break;
+  }
+  _refreshCatHighlight();
+}
+
+// ── Wire search input ──────────────────────────────────────────────────
+try{
+  document.getElementById('catalogSearch').addEventListener('input', ()=>{
+    _cat.activeIdx = 0; // reset to first on new search
+    renderServiceCatalog();
+  });
+}catch(e){}
 
 /* Opens the Add/Edit Service modal. If the Catalog List modal is open
    behind it, temporarily hide it (Bootstrap stacks awkwardly otherwise)
    and re-show it once the Add/Edit modal closes. */
 function openCatalogModal(id){
   const form = document.getElementById('catalogForm');
-  form.reset();
+  form?.reset();
   document.getElementById('catalogId').value='';
   if(id){
-    const c = DB.serviceCatalog.find(x=>x.id===id);
+    const c = DB.serviceCatalog.find(x=>x.id===Number(id));
     if(!c) return;
+    // Remember which index was active so we restore it after edit
+    const idxInList = _cat.list.findIndex(x=>x.id===Number(id));
+    if(idxInList>=0) _cat.activeIdx = idxInList;
     document.getElementById('catalogModalTitle').textContent='Edit Service';
     document.getElementById('catalogId').value=c.id;
     document.getElementById('catalogName').value=c.name;
@@ -5461,62 +5613,80 @@ function openCatalogModal(id){
     document.getElementById('catalogModalTitle').textContent='Add Service to Catalog';
   }
 
-  const listModalEl = document.getElementById('catalogListModal');
-  const listModalInstance = bootstrap.Modal.getInstance(listModalEl);
-  const wasListModalOpen = listModalInstance && listModalEl.classList.contains('show');
-  if(wasListModalOpen) listModalInstance.hide();
+  const listModalEl      = document.getElementById('catalogListModal');
+  const listModalInstance= bootstrap.Modal.getInstance(listModalEl);
+  const wasListOpen      = listModalInstance && listModalEl.classList.contains('show');
+  if(wasListOpen) listModalInstance.hide();
 
   const editModalEl = document.getElementById('catalogModal');
-  const editModal = new bootstrap.Modal(editModalEl);
-  if(wasListModalOpen){
+  const editModal   = new bootstrap.Modal(editModalEl);
+  if(wasListOpen){
     editModalEl.addEventListener('hidden.bs.modal', function reopenList(){
       editModalEl.removeEventListener('hidden.bs.modal', reopenList);
-      openCatalogListModal();
+      // Re-open list and restore position
+      renderServiceCatalog();
+      new bootstrap.Modal(document.getElementById('catalogListModal')).show();
     });
   }
   editModal.show();
 }
 
+try{
 document.getElementById('catalogForm').addEventListener('submit', function(e){
   e.preventDefault();
-  const id = document.getElementById('catalogId').value;
-  const name = document.getElementById('catalogName').value.trim();
-  let url = document.getElementById('catalogUrl').value.trim();
+  const id   = document.getElementById('catalogId').value;
+  const name = (document.getElementById('catalogName').value||'').trim();
+  let   url  = (document.getElementById('catalogUrl').value||'').trim();
+  if(!name){ showToast('Required','Please enter a service name.','danger'); return; }
   if(url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
-  // prevent duplicate names (case-insensitive), excluding self when editing
-  const dup = DB.serviceCatalog.find(c => c.name.toLowerCase()===name.toLowerCase() && c.id!==Number(id));
+  // Prevent duplicate names (case-insensitive), excluding self when editing
+  const dup = DB.serviceCatalog.find(c=>c.name.toLowerCase()===name.toLowerCase()&&c.id!==Number(id));
   if(dup){ showToast('Duplicate Service','A service with this name already exists in the catalog.','danger'); return; }
 
   if(id){
     const c = DB.serviceCatalog.find(x=>x.id===Number(id));
+    if(!c){ showToast('Error','Record not found.','danger'); return; }
     const oldName = c.name;
-    Object.assign(c, {name, url});
-    // keep historical service records' label in sync if the name changed
+    Object.assign(c, {name, url, updatedAt: new Date().toISOString()});
     if(oldName !== name){
-      DB.services.filter(s=>s.serviceName===oldName).forEach(s=> s.serviceName = name);
+      (DB.services||[]).filter(s=>s.serviceName===oldName).forEach(s=>{ s.serviceName=name; });
     }
-    logAudit('Edit','Service Catalog', `Updated catalog entry "${name}"`);
+    logAudit('Edit','Service Catalog','Updated "'+name+'"');
     showToast('Service Updated', name, 'success');
+    // Try to keep nav index on the same record after edit
+    const newIdx = (DB.serviceCatalog||[])
+      .slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''))
+      .findIndex(x=>x.id===Number(id));
+    if(newIdx>=0) _cat.activeIdx = newIdx;
   }else{
-    DB.serviceCatalog.push({ id: DB.meta.nextCatalogId++, name, url });
-    logAudit('Add','Service Catalog', `Added catalog entry "${name}"`);
+    const newEntry = {id: DB.meta.nextCatalogId++, name, url, createdAt:new Date().toISOString()};
+    DB.serviceCatalog.push(newEntry);
+    logAudit('Add','Service Catalog','Added "'+name+'"');
     showToast('Service Added to Catalog', name, 'success');
+    // Jump nav to the new entry after render
+    const newIdx = (DB.serviceCatalog||[])
+      .slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''))
+      .findIndex(x=>x.id===newEntry.id);
+    _cat.activeIdx = newIdx>=0 ? newIdx : 0;
   }
   saveDB();
-  populateServiceCatalogDropdown();
-  renderServiceCatalog();
-  bootstrap.Modal.getInstance(document.getElementById('catalogModal')).hide();
+  try{ populateServiceCatalogDropdown(); }catch(e){}
+  bootstrap.Modal.getInstance(document.getElementById('catalogModal'))?.hide();
+  // renderServiceCatalog called when list re-opens (via hidden.bs.modal handler)
 });
+}catch(e){ console.error('catalogForm listener error:', e); }
 
 function deleteCatalogEntry(id){
   const c = DB.serviceCatalog.find(x=>x.id===id);
   if(!c) return;
-  const usageCount = DB.services.filter(s=>s.serviceName===c.name).length;
-  showConfirm('Delete Catalog Entry?', `Delete "${c.name}" from the catalog? ${usageCount?('This will NOT delete the '+usageCount+' existing service record(s) using this name, but it will no longer appear as a quick-pick option.'):'This cannot be undone.'}`, function(){
+  const usageCount = (DB.services||[]).filter(s=>s.serviceName===c.name).length;
+  showConfirm('Delete Catalog Entry?','Delete "'+c.name+'" from the catalog? '+(usageCount?'This will NOT delete the '+usageCount+' existing service record(s) using this name, but it will no longer appear as a quick-pick option.':'This cannot be undone.'), function(){
+    // Adjust active index before delete so nav doesn't jump to wrong row
+    if(_cat.activeIdx >= _cat.list.length - 1 && _cat.activeIdx > 0) _cat.activeIdx--;
     DB.serviceCatalog = DB.serviceCatalog.filter(x=>x.id!==id);
-    logAudit('Delete','Service Catalog', `Deleted catalog entry "${c.name}"`);
+    logAudit('Delete','Service Catalog','Deleted "'+c.name+'"');
     saveDB();
-    populateServiceCatalogDropdown();
+    try{ populateServiceCatalogDropdown(); }catch(e){}
     renderServiceCatalog();
     showToast('Catalog Entry Deleted', c.name+' removed.', 'success');
   });
@@ -10276,3 +10446,4 @@ navigateTo = function(page){
 
 </body>
 </html>
+ 
